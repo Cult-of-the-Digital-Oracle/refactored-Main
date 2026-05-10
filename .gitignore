@@ -1,0 +1,22 @@
+node_modules/
+.next/
+dist/
+out/
+build/
+
+.env
+.env.local
+.env.*.local
+
+# hardhat
+artifacts/
+cache/
+typechain-types/
+coverage/
+coverage.json
+
+# misc
+.DS_Store
+*.log
+.vscode/
+.idea/
