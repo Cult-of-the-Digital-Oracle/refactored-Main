@@ -15,9 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mantle Trading Card Battle",
+  title: "Cult of the Digital Oracle",
   description:
-    "AI-generated trading cards from your on-chain wallet stats. Battle on Mantle. Mint your identity as ERC-8004.",
+    "An AI reads Mantle every day and speaks. Stake USDY. Receive your Disciple NFT. When prophecy fulfills, the faithful are rewarded.",
 };
 
 export default function RootLayout({
