@@ -91,6 +91,9 @@ export default function Home() {
             <OracleButton href="/prophecies" variant="danger">
               Read The Archive
             </OracleButton>
+            <OracleButton href="/leaderboard">
+              View Ranks
+            </OracleButton>
           </div>
         </div>
 
@@ -109,6 +112,11 @@ export default function Home() {
             marker="03"
             title="Claim Blessings"
             body="When yesterday's words align with what happened, the blessing pool distributes yield back to the faithful."
+          />
+          <Pillar
+            marker="04"
+            title="Climb The Ranks"
+            body="Public Disciple cards and leaderboard positions turn faith, karma, and stake into shareable status."
           />
         </div>
       </section>

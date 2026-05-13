@@ -166,6 +166,12 @@ export default async function DisciplePage({
           >
             View Prophecies
           </Link>
+          <Link
+            href="/leaderboard"
+            className="pixel-button pixel-button-emerald inline-flex min-h-14 flex-1 items-center justify-center px-6 py-3 text-2xl uppercase tracking-[0.12em]"
+          >
+            Leaderboard
+          </Link>
         </div>
 
         <p className="text-xl uppercase tracking-[0.16em] text-[var(--pixel-muted)]">

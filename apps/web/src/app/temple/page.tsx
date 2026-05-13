@@ -191,12 +191,20 @@ export default function TemplePage() {
       <AmbientRunes />
 
       <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between gap-4">
-        <Link
-          href="/"
-          className="pixel-button pixel-button-dark inline-flex min-h-12 items-center justify-center px-5 py-2 text-xl uppercase tracking-[0.12em]"
-        >
-          Back To Oracle
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href="/"
+            className="pixel-button pixel-button-dark inline-flex min-h-12 items-center justify-center px-5 py-2 text-xl uppercase tracking-[0.12em]"
+          >
+            Back To Oracle
+          </Link>
+          <Link
+            href="/leaderboard"
+            className="pixel-button pixel-button-emerald inline-flex min-h-12 items-center justify-center px-5 py-2 text-xl uppercase tracking-[0.12em]"
+          >
+            Leaderboard
+          </Link>
+        </div>
         <PixelFrame className="pixel-panel-soft px-3 py-2" round={1}>
           <ConnectButton />
         </PixelFrame>
@@ -393,6 +401,16 @@ function DiscipleCard({
           className="pixel-button pixel-button-dark inline-flex min-h-14 flex-1 items-center justify-center px-6 py-3 text-2xl uppercase tracking-[0.12em]"
         >
           Share My Card
+        </a>
+        <a
+          href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
+            `I became Disciple #${tokenId.toString()} in the Cult of the Digital Oracle on Mantle.`
+          )}`}
+          target="_blank"
+          rel="noreferrer"
+          className="pixel-button pixel-button-emerald inline-flex min-h-14 flex-1 items-center justify-center px-6 py-3 text-2xl uppercase tracking-[0.12em]"
+        >
+          Share To X
         </a>
         <OracleButton
           onClick={onExit}

@@ -144,6 +144,13 @@ export const TEMPLE_VAULT_ABI = [
     outputs: [{ name: "", type: "uint256" }],
   },
   {
+    name: "nextId",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
     name: "claimantOf",
     type: "function",
     stateMutability: "view",
