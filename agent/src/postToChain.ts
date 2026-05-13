@@ -3,9 +3,9 @@ import { ethers } from "ethers";
 // Minimal ABIs — only what the agent needs
 const ORACLE_MESSAGE_ABI = [
   "function postProphecy(string calldata text) external returns (uint256 day)",
-  "function resolveProphecy(uint256 day, uint8 score) external",
-  "function getProphecy(uint256 day) external view returns (tuple(string text, uint256 timestamp, uint8 fulfillmentScore, bool resolved))",
-  "function todaysProphecy() external view returns (tuple(string text, uint256 timestamp, uint8 fulfillmentScore, bool resolved))",
+  "function resolveProphecy(uint256 day, uint8 score, string calldata reason, string calldata evidence) external",
+  "function getProphecy(uint256 day) external view returns (tuple(string text, uint256 timestamp, uint8 fulfillmentScore, string resolutionReason, string evidence, bool resolved))",
+  "function todaysProphecy() external view returns (tuple(string text, uint256 timestamp, uint8 fulfillmentScore, string resolutionReason, string evidence, bool resolved))",
 ];
 
 const BLESSING_DISTRIBUTOR_ABI = [
@@ -37,10 +37,12 @@ export async function resolveProphecy(
   signer: ethers.Wallet,
   oracleMessageAddr: string,
   day: bigint,
-  score: number
+  score: number,
+  reason: string,
+  evidence: string
 ): Promise<string> {
   const contract = new ethers.Contract(oracleMessageAddr, ORACLE_MESSAGE_ABI, signer);
-  const tx = await contract.resolveProphecy(day, score);
+  const tx = await contract.resolveProphecy(day, score, reason, evidence);
   const receipt = await tx.wait();
   return receipt.hash;
 }

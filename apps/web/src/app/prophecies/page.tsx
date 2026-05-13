@@ -16,6 +16,8 @@ type Prophecy = {
   text: string;
   timestamp: bigint;
   fulfillmentScore: number;
+  resolutionReason: string;
+  evidence: string;
   resolved: boolean;
 };
 
@@ -306,15 +308,61 @@ function ProphecyCard({ entry }: { entry: ProphecyEntry }) {
       </p>
 
       {entry.resolved && (
-        <div className="mt-5">
-          <div className="h-4 w-full bg-[rgba(10,7,5,0.85)] shadow-[4px_4px_0_var(--pixel-shadow)]">
-            <div
-              className={`h-full ${theme.bar}`}
-              style={{ width: `${entry.fulfillmentScore}%` }}
-            />
+        <>
+          <div className="mt-5">
+            <div className="h-4 w-full bg-[rgba(10,7,5,0.85)] shadow-[4px_4px_0_var(--pixel-shadow)]">
+              <div
+                className={`h-full ${theme.bar}`}
+                style={{ width: `${entry.fulfillmentScore}%` }}
+              />
+            </div>
           </div>
-        </div>
+          <OracleProof reason={entry.resolutionReason} evidence={entry.evidence} />
+        </>
       )}
+    </PixelFrame>
+  );
+}
+
+function OracleProof({ reason, evidence }: { reason: string; evidence: string }) {
+  const metrics = evidence
+    .split(";")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 8);
+
+  return (
+    <PixelFrame className="pixel-panel-soft mt-5 px-4 py-4" round={1}>
+      <div className="flex flex-col gap-3">
+        <div>
+          <p className="text-lg uppercase tracking-[0.18em] text-[var(--pixel-border)]">
+            Oracle Proof
+          </p>
+          <p className="mt-1 text-2xl leading-snug text-[var(--pixel-parchment)]">
+            {reason || "No resolution reason was recorded for this prophecy."}
+          </p>
+        </div>
+
+        {metrics.length > 0 && (
+          <div className="grid gap-2 sm:grid-cols-2">
+            {metrics.map((metric) => {
+              const [label, ...valueParts] = metric.split("=");
+              const value = valueParts.join("=") || "-";
+              return (
+                <div
+                  key={metric}
+                  className="bg-[rgba(10,7,5,0.42)] px-3 py-2 shadow-[3px_3px_0_var(--pixel-shadow)]"
+                >
+                  <p className="text-sm uppercase tracking-[0.12em] text-[var(--pixel-border)]">
+                    {label}
+                  </p>
+                  <p className="mt-1 break-words text-xl text-[var(--pixel-muted)]">{value}</p>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </PixelFrame>
   );
 }

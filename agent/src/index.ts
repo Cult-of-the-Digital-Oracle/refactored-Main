@@ -52,17 +52,24 @@ const YIELD_PER_ROUND = ethers.parseUnits("0.5", 6);
 async function runOracleCycle() {
   console.log(`\n[${new Date().toISOString()}] Oracle cycle starting...`);
 
-  const chainData = await fetchChainData(provider);
+  const chainData = await fetchChainData(provider, USDY_ADDRESS);
   console.log("Chain data fetched:", chainData.blockNumber);
 
   // ── 1. Evaluate yesterday's prophecy ─────────────────────────────────────
   const yesterday = await getYesterdayProphecy(provider, ORACLE_MESSAGE_ADDRESS!);
   if (yesterday && !yesterday.resolved) {
     console.log("Evaluating yesterday's prophecy...");
-    const { score, reason } = await evaluateProphecy(openai, yesterday.text, chainData);
-    console.log(`  Score: ${score}/100 — ${reason}`);
+    const { score, reason, evidence } = await evaluateProphecy(openai, yesterday.text, chainData);
+    console.log(`  Score: ${score}/100 - ${reason}`);
 
-    const hash = await resolveProphecy(signer, ORACLE_MESSAGE_ADDRESS!, yesterday.day, score);
+    const hash = await resolveProphecy(
+      signer,
+      ORACLE_MESSAGE_ADDRESS!,
+      yesterday.day,
+      score,
+      reason,
+      evidence
+    );
     console.log(`  Resolved on-chain: ${hash}`);
 
     // Queue blessing if fulfilled above threshold

@@ -14,7 +14,14 @@ export function TodaysProphecy() {
   });
 
   const prophecy = data as
-    | { text: string; timestamp: bigint; fulfillmentScore: number; resolved: boolean }
+    | {
+        text: string;
+        timestamp: bigint;
+        fulfillmentScore: number;
+        resolutionReason: string;
+        evidence: string;
+        resolved: boolean;
+      }
     | undefined;
 
   const blockNum = useReadContract({

@@ -9,7 +9,9 @@ contract OracleMessage is Ownable {
     struct Prophecy {
         string text;
         uint256 timestamp;
-        uint8 fulfillmentScore; // 0–100; 0 = unresolved
+        uint8 fulfillmentScore; // 0-100; 0 = unresolved
+        string resolutionReason;
+        string evidence;
         bool resolved;
     }
 
@@ -20,7 +22,7 @@ contract OracleMessage is Ownable {
     error InvalidScore();
 
     event ProphecyDelivered(uint256 indexed day, string text, uint256 timestamp);
-    event ProphecyResolved(uint256 indexed day, uint8 score);
+    event ProphecyResolved(uint256 indexed day, uint8 score, string reason, string evidence);
     event OracleUpdated(address indexed newOracle);
 
     address public oracle;
@@ -47,6 +49,8 @@ contract OracleMessage is Ownable {
             text: text,
             timestamp: block.timestamp,
             fulfillmentScore: 0,
+            resolutionReason: "",
+            evidence: "",
             resolved: false
         });
         prophecyDays.push(day);
@@ -54,16 +58,37 @@ contract OracleMessage is Ownable {
         emit ProphecyDelivered(day, text, block.timestamp);
     }
 
-    /// @notice Score yesterday's (or any past) prophecy. Score 0–100.
+    /// @notice Score yesterday's (or any past) prophecy. Score 0-100.
     function resolveProphecy(uint256 day, uint8 score) external onlyOracle {
+        _resolveProphecy(day, score, "", "");
+    }
+
+    /// @notice Score a prophecy with a short reason and evidence snapshot.
+    function resolveProphecy(
+        uint256 day,
+        uint8 score,
+        string calldata reason,
+        string calldata evidence
+    ) external onlyOracle {
+        _resolveProphecy(day, score, reason, evidence);
+    }
+
+    function _resolveProphecy(
+        uint256 day,
+        uint8 score,
+        string memory reason,
+        string memory evidence
+    ) internal {
         if (bytes(_prophecies[day].text).length == 0) revert NoProphecyForDay();
         if (_prophecies[day].resolved) revert AlreadyResolved();
         if (score > 100) revert InvalidScore();
 
         _prophecies[day].fulfillmentScore = score;
+        _prophecies[day].resolutionReason = reason;
+        _prophecies[day].evidence = evidence;
         _prophecies[day].resolved = true;
 
-        emit ProphecyResolved(day, score);
+        emit ProphecyResolved(day, score, reason, evidence);
     }
 
     function getProphecy(uint256 day) external view returns (Prophecy memory) {

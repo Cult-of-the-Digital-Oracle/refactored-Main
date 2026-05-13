@@ -20,6 +20,8 @@ export const ORACLE_MESSAGE_ABI = [
     inputs: [
       { name: "day", type: "uint256" },
       { name: "score", type: "uint8" },
+      { name: "reason", type: "string" },
+      { name: "evidence", type: "string" },
     ],
     outputs: [],
   },
@@ -36,6 +38,8 @@ export const ORACLE_MESSAGE_ABI = [
           { name: "text", type: "string" },
           { name: "timestamp", type: "uint256" },
           { name: "fulfillmentScore", type: "uint8" },
+          { name: "resolutionReason", type: "string" },
+          { name: "evidence", type: "string" },
           { name: "resolved", type: "bool" },
         ],
       },
@@ -54,6 +58,8 @@ export const ORACLE_MESSAGE_ABI = [
           { name: "text", type: "string" },
           { name: "timestamp", type: "uint256" },
           { name: "fulfillmentScore", type: "uint8" },
+          { name: "resolutionReason", type: "string" },
+          { name: "evidence", type: "string" },
           { name: "resolved", type: "bool" },
         ],
       },
@@ -88,6 +94,8 @@ export const ORACLE_MESSAGE_ABI = [
     inputs: [
       { name: "day", type: "uint256", indexed: true },
       { name: "score", type: "uint8", indexed: false },
+      { name: "reason", type: "string", indexed: false },
+      { name: "evidence", type: "string", indexed: false },
     ],
   },
 ] as const;

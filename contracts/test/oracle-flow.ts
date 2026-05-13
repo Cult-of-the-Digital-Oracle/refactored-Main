@@ -21,10 +21,37 @@ async function deployFixture() {
   );
   await distributor.waitForDeployment();
 
-  return { owner, oracle, alice, bob, usdy, vault, distributor };
+  const OracleMessage = await ethers.getContractFactory("OracleMessage");
+  const oracleMessage = await OracleMessage.deploy(oracle.address);
+  await oracleMessage.waitForDeployment();
+
+  return { owner, oracle, alice, bob, usdy, vault, distributor, oracleMessage };
 }
 
 describe("Digital Oracle core flow", function () {
+  it("stores resolution reason and evidence with the score", async function () {
+    const { oracle, oracleMessage } = await loadFixture(deployFixture);
+
+    const postTx = await oracleMessage.connect(oracle).postProphecy("The chain will wake.");
+    const receipt = await postTx.wait();
+    const block = await ethers.provider.getBlock(receipt!.blockNumber);
+    const day = BigInt(Math.floor(block!.timestamp / 86400));
+
+    await expect(
+      oracleMessage
+        .connect(oracle)
+        .resolveProphecy(day, 84, "Activity rose across sampled blocks.", "sampledTx=42; activeAddresses=21")
+    )
+      .to.emit(oracleMessage, "ProphecyResolved")
+      .withArgs(day, 84, "Activity rose across sampled blocks.", "sampledTx=42; activeAddresses=21");
+
+    const prophecy = await oracleMessage.getProphecy(day);
+    expect(prophecy.fulfillmentScore).to.equal(84);
+    expect(prophecy.resolutionReason).to.equal("Activity rose across sampled blocks.");
+    expect(prophecy.evidence).to.equal("sampledTx=42; activeAddresses=21");
+    expect(prophecy.resolved).to.equal(true);
+  });
+
   it("rejects blessing rounds when nobody is staked", async function () {
     const { oracle, usdy, distributor } = await loadFixture(deployFixture);
     const yieldAmount = ethers.parseUnits("25", 6);
