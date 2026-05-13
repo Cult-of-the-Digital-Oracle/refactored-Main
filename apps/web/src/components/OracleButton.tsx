@@ -1,6 +1,5 @@
 import Link from "next/link";
-import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from "react";
-import { ORACLE_ASSETS } from "@/lib/oracleAssets";
+import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 type OracleButtonVariant = "primary" | "danger";
 
@@ -22,52 +21,17 @@ type ButtonProps = BaseProps &
     href?: never;
   };
 
-function spriteFor(variant: OracleButtonVariant) {
-  return variant === "danger"
-    ? ORACLE_ASSETS.ui.pixelButtonDanger
-    : ORACLE_ASSETS.ui.pixelButtonPrimary;
+function variantClass(variant: OracleButtonVariant) {
+  return variant === "danger" ? "pixel-button-danger" : "pixel-button-emerald";
 }
 
-function frameStyle(variant: OracleButtonVariant, disabled?: boolean): CSSProperties {
-  return {
-    backgroundImage: `url("${spriteFor(variant)}")`,
-    backgroundSize: "300% 100%",
-    backgroundPosition: disabled ? "100% 0%" : "0% 0%",
-  };
-}
-
-function sharedClasses(className = "", disabled?: boolean) {
+function sharedClasses(className = "", variant: OracleButtonVariant, disabled?: boolean) {
   return [
-    "group relative inline-flex min-h-14 items-center justify-center overflow-hidden px-8 py-3 uppercase tracking-[0.12em]",
-    "text-2xl text-[#201409] transition-transform duration-100",
-    disabled ? "cursor-not-allowed opacity-55" : "hover:-translate-y-0.5 active:translate-y-0.5",
+    "pixel-button inline-flex min-h-14 items-center justify-center px-8 py-3 text-2xl uppercase tracking-[0.12em]",
+    variantClass(variant),
+    disabled ? "pointer-events-none opacity-55" : "",
     className,
   ].join(" ");
-}
-
-function Label({ children, variant }: { children: ReactNode; variant: OracleButtonVariant }) {
-  const color = variant === "danger" ? "text-[#fff0ea]" : "text-[#201409]";
-  return (
-    <span className={`relative z-10 px-6 text-center leading-none ${color}`}>
-      {children}
-    </span>
-  );
-}
-
-function Frame({
-  variant,
-  disabled,
-}: {
-  variant: OracleButtonVariant;
-  disabled?: boolean;
-}) {
-  return (
-    <span
-      aria-hidden="true"
-      className="pointer-events-none absolute inset-0 z-0 bg-no-repeat"
-      style={frameStyle(variant, disabled)}
-    />
-  );
 }
 
 export function OracleButton(props: LinkProps | ButtonProps) {
@@ -79,10 +43,9 @@ export function OracleButton(props: LinkProps | ButtonProps) {
       <Link
         href={href}
         aria-disabled={disabled}
-        className={sharedClasses(className, disabled)}
+        className={sharedClasses(className, variant, disabled)}
       >
-        <Frame variant={variant} disabled={disabled} />
-        <Label variant={variant}>{children}</Label>
+        <span className="relative z-10 text-center leading-none">{children}</span>
       </Link>
     );
   }
@@ -99,11 +62,10 @@ export function OracleButton(props: LinkProps | ButtonProps) {
     <button
       type={type}
       disabled={disabled}
-      className={sharedClasses(className, disabled)}
+      className={sharedClasses(className, variant, disabled)}
       {...buttonProps}
     >
-      <Frame variant={variant} disabled={disabled} />
-      <Label variant={variant}>{children}</Label>
+      <span className="relative z-10 text-center leading-none">{children}</span>
     </button>
   );
 }
