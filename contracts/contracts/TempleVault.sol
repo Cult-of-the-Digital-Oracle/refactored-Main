@@ -26,10 +26,12 @@ contract TempleVault is ERC721URIStorage, Ownable {
     error NotDisciple();
     error ZeroStake();
     error NotOracle();
+    error AlreadyCheckedIn();
 
     event Entered(address indexed disciple, uint256 indexed tokenId, uint256 amount);
     event Exited(address indexed disciple, uint256 indexed tokenId);
     event KarmaGranted(uint256 indexed tokenId, uint256 amount);
+    event FaithCheckedIn(address indexed disciple, uint256 indexed tokenId, uint256 day, uint256 karmaAwarded);
 
     IERC20 public immutable usdy;
     address public oracle;
@@ -39,6 +41,7 @@ contract TempleVault is ERC721URIStorage, Ownable {
 
     mapping(uint256 => Disciple) public disciples;
     mapping(address => uint256) public cardOf; // wallet → tokenId (0 = none)
+    mapping(uint256 => uint256) public lastCheckInDay; // tokenId -> day index
 
     modifier onlyOracle() {
         if (msg.sender != oracle) revert NotOracle();
@@ -96,6 +99,21 @@ contract TempleVault is ERC721URIStorage, Ownable {
         if (!disciples[tokenId].active) revert NotDisciple();
         disciples[tokenId].karma += amount;
         emit KarmaGranted(tokenId, amount);
+    }
+
+    /// @notice Daily public faith action. One check-in per Disciple per UTC day.
+    function checkIn(uint256 tokenId) external {
+        if (ownerOf(tokenId) != msg.sender) revert NotDisciple();
+        if (!disciples[tokenId].active) revert NotDisciple();
+
+        uint256 day = block.timestamp / 1 days;
+        if (lastCheckInDay[tokenId] == day) revert AlreadyCheckedIn();
+
+        lastCheckInDay[tokenId] = day;
+        disciples[tokenId].karma += 5;
+
+        emit FaithCheckedIn(msg.sender, tokenId, day, 5);
+        emit KarmaGranted(tokenId, 5);
     }
 
     function setOracle(address _oracle) external onlyOwner {

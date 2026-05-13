@@ -116,10 +116,24 @@ export const TEMPLE_VAULT_ABI = [
     outputs: [],
   },
   {
+    name: "checkIn",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [{ name: "tokenId", type: "uint256" }],
+    outputs: [],
+  },
+  {
     name: "cardOf",
     type: "function",
     stateMutability: "view",
     inputs: [{ name: "wallet", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
+    name: "lastCheckInDay",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "tokenId", type: "uint256" }],
     outputs: [{ name: "", type: "uint256" }],
   },
   {
@@ -174,6 +188,16 @@ export const TEMPLE_VAULT_ABI = [
       { name: "disciple", type: "address", indexed: true },
       { name: "tokenId", type: "uint256", indexed: true },
       { name: "amount", type: "uint256", indexed: false },
+    ],
+  },
+  {
+    name: "FaithCheckedIn",
+    type: "event",
+    inputs: [
+      { name: "disciple", type: "address", indexed: true },
+      { name: "tokenId", type: "uint256", indexed: true },
+      { name: "day", type: "uint256", indexed: false },
+      { name: "karmaAwarded", type: "uint256", indexed: false },
     ],
   },
 ] as const;

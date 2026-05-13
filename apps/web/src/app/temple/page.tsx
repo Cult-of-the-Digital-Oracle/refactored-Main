@@ -86,6 +86,14 @@ export default function TemplePage() {
     functionName: "totalFaith",
   });
 
+  const { data: lastCheckInDay, refetch: refetchLastCheckInDay } = useReadContract({
+    address: CONTRACTS.templeVault,
+    abi: TEMPLE_VAULT_ABI,
+    functionName: "lastCheckInDay",
+    args: [tokenId!],
+    query: { enabled: isDisciple },
+  });
+
   const { data: usdyBalance, refetch: refetchBalance } = useReadContract({
     address: CONTRACTS.usdy,
     abi: ERC20_ABI,
@@ -130,6 +138,7 @@ export default function TemplePage() {
     refetchBalance();
     refetchAllowance();
     refetchDisciple();
+    refetchLastCheckInDay();
     resetWrite();
   }, [isSuccess]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -173,6 +182,16 @@ export default function TemplePage() {
       address: CONTRACTS.templeVault,
       abi: TEMPLE_VAULT_ABI,
       functionName: "exit",
+      args: [tokenId],
+    });
+  }
+
+  function handleCheckIn() {
+    if (!tokenId) return;
+    writeContract({
+      address: CONTRACTS.templeVault,
+      abi: TEMPLE_VAULT_ABI,
+      functionName: "checkIn",
       args: [tokenId],
     });
   }
@@ -275,7 +294,9 @@ export default function TemplePage() {
               <DiscipleCard
                 tokenId={tokenId!}
                 disciple={disciple}
+                lastCheckInDay={lastCheckInDay}
                 isBusy={isBusy}
+                onCheckIn={handleCheckIn}
                 onExit={handleExit}
               />
             ) : (
@@ -347,12 +368,16 @@ function Step({
 function DiscipleCard({
   tokenId,
   disciple,
+  lastCheckInDay,
   isBusy,
+  onCheckIn,
   onExit,
 }: {
   tokenId: bigint;
   disciple: Disciple;
+  lastCheckInDay: bigint | undefined;
   isBusy: boolean;
+  onCheckIn: () => void;
   onExit: () => void;
 }) {
   return (
@@ -390,6 +415,14 @@ function DiscipleCard({
       </PixelFrame>
 
       <div className="mt-5">
+        <FaithActionPanel
+          lastCheckInDay={lastCheckInDay}
+          isBusy={isBusy}
+          onCheckIn={onCheckIn}
+        />
+      </div>
+
+      <div className="mt-5">
         <ClaimPanel tokenId={tokenId} />
       </div>
 
@@ -419,6 +452,50 @@ function DiscipleCard({
           className="flex-1"
         >
           {isBusy ? "Leaving..." : "Leave Temple"}
+        </OracleButton>
+      </div>
+    </PixelFrame>
+  );
+}
+
+function FaithActionPanel({
+  lastCheckInDay,
+  isBusy,
+  onCheckIn,
+}: {
+  lastCheckInDay: bigint | undefined;
+  isBusy: boolean;
+  onCheckIn: () => void;
+}) {
+  const today = BigInt(Math.floor(Date.now() / 1000 / 86400));
+  const alreadyCheckedIn = lastCheckInDay === today;
+
+  return (
+    <PixelFrame className="pixel-panel-soft px-4 py-4" round={1}>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <Image
+              src={ORACLE_ASSETS.ui.starKarmaIcon}
+              alt=""
+              width={20}
+              height={20}
+              className="pixelated h-5 w-5"
+            />
+            <p className="text-xl uppercase tracking-[0.18em] text-[var(--pixel-border)]">
+              Daily Faith
+            </p>
+          </div>
+          <p className="mt-1 text-2xl text-[var(--pixel-muted)]">
+            {alreadyCheckedIn ? "Today's faith is recorded on-chain." : "Check in once per day to earn +5 karma."}
+          </p>
+        </div>
+        <OracleButton
+          onClick={onCheckIn}
+          disabled={isBusy || alreadyCheckedIn}
+          className="px-5"
+        >
+          {alreadyCheckedIn ? "Recorded" : "Check In"}
         </OracleButton>
       </div>
     </PixelFrame>

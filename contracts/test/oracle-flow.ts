@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import { loadFixture, time } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { ethers } from "hardhat";
 
 async function deployFixture() {
@@ -62,6 +62,34 @@ describe("Digital Oracle core flow", function () {
     await expect(
       distributor.connect(oracle).queueBlessing(1, yieldAmount)
     ).to.be.revertedWithCustomError(distributor, "NoActiveFaith");
+  });
+
+  it("allows one daily check-in for active disciples", async function () {
+    const { alice, usdy, vault } = await loadFixture(deployFixture);
+    const stakeAmount = ethers.parseUnits("25", 6);
+
+    await usdy.mint(alice.address, stakeAmount);
+    await usdy.connect(alice).approve(await vault.getAddress(), stakeAmount);
+    await vault.connect(alice).enter(stakeAmount);
+
+    await expect(vault.connect(alice).checkIn(1))
+      .to.emit(vault, "FaithCheckedIn")
+      .and.to.emit(vault, "KarmaGranted")
+      .withArgs(1, 5);
+
+    let disciple = await vault.disciples(1);
+    expect(disciple.karma).to.equal(5);
+
+    await expect(vault.connect(alice).checkIn(1)).to.be.revertedWithCustomError(
+      vault,
+      "AlreadyCheckedIn"
+    );
+
+    await time.increase(24 * 60 * 60);
+    await vault.connect(alice).checkIn(1);
+
+    disciple = await vault.disciples(1);
+    expect(disciple.karma).to.equal(10);
   });
 
   it("preserves claims for past rounds after exit but blocks future rounds", async function () {
