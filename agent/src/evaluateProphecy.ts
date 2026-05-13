@@ -17,7 +17,7 @@ export async function evaluateProphecy(
   chainData: ChainSnapshot
 ): Promise<{ score: number; reason: string }> {
   const response = await client.chat.completions.create({
-    model: "gpt-4o",
+    model: "llama-3.3-70b-versatile",
     messages: [
       { role: "system", content: EVAL_SYSTEM },
       {

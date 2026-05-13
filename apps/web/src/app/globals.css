@@ -1,26 +1,310 @@
+@import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0d0a06;
+  --foreground: #f5e6c8;
+  --pixel-void: #0d0a06;
+  --pixel-panel: #1a120b;
+  --pixel-panel-soft: #24170f;
+  --pixel-panel-alt: #2c1b10;
+  --pixel-border: #c8a84b;
+  --pixel-border-dark: #8b5e3c;
+  --pixel-text: #f5e6c8;
+  --pixel-muted: #c8b27f;
+  --pixel-shadow: #3d2810;
+  --pixel-emerald: #4a9e6b;
+  --pixel-emerald-dark: #1d4e34;
+  --pixel-crimson: #8b2020;
+  --pixel-parchment: #f0d9a0;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: "VT323", var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    background: var(--pixel-void);
+  }
+
+  body {
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at top, rgba(74, 158, 107, 0.16), transparent 28%),
+      linear-gradient(180deg, #171008 0%, #0d0a06 100%);
+    color: var(--pixel-text);
+    font-family: "VT323", var(--font-geist-sans), monospace;
+    letter-spacing: 0.03em;
+    image-rendering: pixelated;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .pixel-frame {
+    position: relative;
+    isolation: isolate;
+    background: transparent !important;
+    box-shadow: none !important;
+    --pixel-frame-fill: var(--pixel-panel);
+    --pixel-frame-border: var(--pixel-border);
+    --pixel-frame-inner-highlight: rgba(240, 217, 160, 0.14);
+    --pixel-frame-shadow-x: 4px;
+    --pixel-frame-shadow-y: 4px;
+    --pixel-frame-shadow-color: rgba(61, 40, 16, 0.95);
+  }
+
+  .pixel-frame__shadow,
+  .pixel-frame__fill,
+  .pixel-frame__inner-shade,
+  .pixel-frame__chrome {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    image-rendering: pixelated;
+  }
+
+  .pixel-panel {
+    --pixel-frame-fill: rgba(26, 18, 11, 0.96);
+    --pixel-frame-border: var(--pixel-border);
+    --pixel-frame-inner-highlight: rgba(240, 217, 160, 0.12);
+    --pixel-frame-shadow-color: rgba(61, 40, 16, 0.88);
+  }
+
+  .pixel-panel-soft {
+    --pixel-frame-fill: rgba(36, 23, 15, 0.96);
+  }
+
+  .pixel-panel-emerald {
+    --pixel-frame-fill: rgba(19, 40, 28, 0.96);
+    --pixel-frame-border: var(--pixel-emerald);
+    --pixel-frame-inner-highlight: rgba(74, 158, 107, 0.16);
+  }
+
+  .pixel-panel-danger {
+    --pixel-frame-fill: rgba(49, 14, 14, 0.95);
+    --pixel-frame-border: #c45757;
+    --pixel-frame-inner-highlight: rgba(196, 87, 87, 0.15);
+  }
+
+  .pixel-button {
+    position: relative;
+    isolation: isolate;
+    border: 0;
+    background: transparent !important;
+    color: #201409;
+    cursor: pointer;
+    transition: transform 120ms ease, filter 120ms ease, opacity 120ms ease;
+    --pixel-button-fill: var(--pixel-border);
+    --pixel-button-color: var(--pixel-border-dark);
+    --pixel-button-inner-highlight: rgba(255, 245, 214, 0.36);
+    --pixel-button-inner-shadow: rgba(61, 40, 16, 0.18);
+    --pixel-button-corner: 8px;
+    --pixel-button-thickness: 4px;
+    --pixel-button-drop: 12px;
+    --pixel-button-shadow: 4px 4px 0 rgba(61, 40, 16, 0.55);
+  }
+
+  .pixel-button:hover {
+    filter: brightness(1.05);
+    transform: translateY(-1px);
+  }
+
+  .pixel-button:active {
+    transform: translateY(3px);
+  }
+
+  .pixel-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+    filter: grayscale(0.2);
+  }
+
+  .pixel-button::before,
+  .pixel-button::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    image-rendering: pixelated;
+  }
+
+  .pixel-button::before {
+    z-index: -1;
+    filter: drop-shadow(var(--pixel-button-shadow));
+    clip-path: polygon(
+      var(--pixel-button-corner) 0,
+      calc(100% - var(--pixel-button-corner)) 0,
+      calc(100% - var(--pixel-button-corner)) var(--pixel-button-thickness),
+      calc(100% - var(--pixel-button-thickness)) var(--pixel-button-thickness),
+      calc(100% - var(--pixel-button-thickness)) var(--pixel-button-corner),
+      100% var(--pixel-button-corner),
+      100% calc(100% - var(--pixel-button-corner)),
+      calc(100% - var(--pixel-button-thickness)) calc(100% - var(--pixel-button-corner)),
+      calc(100% - var(--pixel-button-thickness)) calc(100% - var(--pixel-button-thickness)),
+      calc(100% - var(--pixel-button-corner)) calc(100% - var(--pixel-button-thickness)),
+      calc(100% - var(--pixel-button-corner)) 100%,
+      var(--pixel-button-corner) 100%,
+      var(--pixel-button-corner) calc(100% - var(--pixel-button-thickness)),
+      var(--pixel-button-thickness) calc(100% - var(--pixel-button-thickness)),
+      var(--pixel-button-thickness) calc(100% - var(--pixel-button-corner)),
+      0 calc(100% - var(--pixel-button-corner)),
+      0 var(--pixel-button-corner),
+      var(--pixel-button-thickness) var(--pixel-button-corner),
+      var(--pixel-button-thickness) var(--pixel-button-thickness),
+      var(--pixel-button-corner) var(--pixel-button-thickness)
+    );
+    background:
+      linear-gradient(var(--pixel-button-color), var(--pixel-button-color)) top left var(--pixel-button-corner) / calc(100% - var(--pixel-button-corner) - var(--pixel-button-corner)) var(--pixel-button-thickness) no-repeat,
+      linear-gradient(var(--pixel-button-color), var(--pixel-button-color)) bottom left var(--pixel-button-corner) / calc(100% - var(--pixel-button-corner) - var(--pixel-button-corner)) var(--pixel-button-thickness) no-repeat,
+      linear-gradient(var(--pixel-button-color), var(--pixel-button-color)) top var(--pixel-button-drop) left / var(--pixel-button-thickness) calc(100% - var(--pixel-button-drop) - var(--pixel-button-drop)) no-repeat,
+      linear-gradient(var(--pixel-button-color), var(--pixel-button-color)) top var(--pixel-button-drop) right / var(--pixel-button-thickness) calc(100% - var(--pixel-button-drop) - var(--pixel-button-drop)) no-repeat,
+      linear-gradient(var(--pixel-button-inner-highlight), var(--pixel-button-inner-highlight)) top var(--pixel-button-thickness) left var(--pixel-button-corner) / calc(100% - var(--pixel-button-corner) - var(--pixel-button-corner)) var(--pixel-button-thickness) no-repeat,
+      linear-gradient(var(--pixel-button-inner-highlight), var(--pixel-button-inner-highlight)) top var(--pixel-button-drop) left var(--pixel-button-thickness) / var(--pixel-button-thickness) calc(100% - var(--pixel-button-drop) - var(--pixel-button-drop)) no-repeat,
+      linear-gradient(var(--pixel-button-inner-shadow), var(--pixel-button-inner-shadow)) bottom var(--pixel-button-thickness) left var(--pixel-button-corner) / calc(100% - var(--pixel-button-corner) - var(--pixel-button-corner)) var(--pixel-button-thickness) no-repeat,
+      linear-gradient(var(--pixel-button-inner-shadow), var(--pixel-button-inner-shadow)) top var(--pixel-button-drop) right var(--pixel-button-thickness) / var(--pixel-button-thickness) calc(100% - var(--pixel-button-drop) - var(--pixel-button-drop)) no-repeat,
+      linear-gradient(var(--pixel-button-fill), var(--pixel-button-fill)) center / 100% 100% no-repeat;
+  }
+
+  .pixel-button::after {
+    z-index: 1;
+    filter: drop-shadow(var(--pixel-button-shadow));
+    background:
+      linear-gradient(var(--pixel-button-color), var(--pixel-button-color)) left var(--pixel-button-thickness) top var(--pixel-button-thickness) / var(--pixel-button-thickness) var(--pixel-button-thickness) no-repeat,
+      linear-gradient(var(--pixel-button-color), var(--pixel-button-color)) left 0 top calc(var(--pixel-button-thickness) + var(--pixel-button-thickness)) / var(--pixel-button-thickness) var(--pixel-button-thickness) no-repeat,
+      linear-gradient(var(--pixel-button-color), var(--pixel-button-color)) right var(--pixel-button-thickness) top var(--pixel-button-thickness) / var(--pixel-button-thickness) var(--pixel-button-thickness) no-repeat,
+      linear-gradient(var(--pixel-button-color), var(--pixel-button-color)) right 0 top calc(var(--pixel-button-thickness) + var(--pixel-button-thickness)) / var(--pixel-button-thickness) var(--pixel-button-thickness) no-repeat,
+      linear-gradient(var(--pixel-button-color), var(--pixel-button-color)) right var(--pixel-button-thickness) bottom var(--pixel-button-thickness) / var(--pixel-button-thickness) var(--pixel-button-thickness) no-repeat,
+      linear-gradient(var(--pixel-button-color), var(--pixel-button-color)) right 0 bottom calc(var(--pixel-button-thickness) + var(--pixel-button-thickness)) / var(--pixel-button-thickness) var(--pixel-button-thickness) no-repeat,
+      linear-gradient(var(--pixel-button-color), var(--pixel-button-color)) left var(--pixel-button-thickness) bottom var(--pixel-button-thickness) / var(--pixel-button-thickness) var(--pixel-button-thickness) no-repeat,
+      linear-gradient(var(--pixel-button-color), var(--pixel-button-color)) left 0 bottom calc(var(--pixel-button-thickness) + var(--pixel-button-thickness)) / var(--pixel-button-thickness) var(--pixel-button-thickness) no-repeat;
+  }
+
+  .pixel-button-emerald {
+    --pixel-button-fill: var(--pixel-emerald);
+    --pixel-button-color: #1d4e34;
+    --pixel-button-inner-highlight: rgba(201, 255, 222, 0.24);
+    color: #06170c;
+  }
+
+  .pixel-button-dark {
+    --pixel-button-fill: var(--pixel-panel-alt);
+    --pixel-button-color: var(--pixel-border);
+    --pixel-button-inner-highlight: rgba(240, 217, 160, 0.1);
+    --pixel-button-inner-shadow: rgba(0, 0, 0, 0.24);
+    color: var(--pixel-text);
+  }
+
+  .pixel-button-danger {
+    --pixel-button-fill: #8b2020;
+    --pixel-button-color: #4d0f0f;
+    --pixel-button-inner-highlight: rgba(255, 212, 212, 0.16);
+    color: #fff0ea;
+  }
+
+  .pixel-input {
+    background: rgba(10, 7, 5, 0.92);
+    border: 4px solid var(--pixel-border-dark);
+    box-shadow: 4px 4px 0 var(--pixel-shadow), inset 0 0 0 2px rgba(240, 217, 160, 0.08);
+    color: var(--pixel-text);
+  }
+
+  .pixel-grid {
+    background-image:
+      linear-gradient(rgba(200, 168, 75, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(200, 168, 75, 0.08) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  .pixel-text-shadow {
+    text-shadow: 2px 2px 0 rgba(61, 40, 16, 0.9);
+  }
+
+  .pixelated {
+    image-rendering: pixelated;
+  }
+
+  .oracle-sprite {
+    display: inline-block;
+    flex-shrink: 0;
+    image-rendering: pixelated;
+    background-repeat: no-repeat;
+    background-position: 0 0;
+  }
+
+  .oracle-spinner {
+    background-size: 800% 100%;
+    animation: oracle-spinner-steps 1s steps(8) infinite;
+  }
+
+  .oracle-burst {
+    background-size: 600% 100%;
+    animation: oracle-burst-steps 900ms steps(6) 1;
+  }
+
+  .oracle-rune {
+    background-size: 400% 100%;
+    animation: oracle-rune-steps 1.4s steps(4) infinite;
+  }
+
+  .number-input-clean::-webkit-outer-spin-button,
+  .number-input-clean::-webkit-inner-spin-button {
+    margin: 0;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  .number-input-clean {
+    appearance: textfield;
+    -moz-appearance: textfield;
+  }
+}
+
+@keyframes oracle-spinner-steps {
+  from {
+    background-position: 0% 0;
+  }
+
+  to {
+    background-position: 100% 0;
+  }
+}
+
+@keyframes oracle-burst-steps {
+  from {
+    background-position: 0% 0;
+  }
+
+  to {
+    background-position: 100% 0;
+  }
+}
+
+@keyframes oracle-rune-steps {
+  from {
+    background-position: 0% 0;
+  }
+
+  to {
+    background-position: 100% 0;
+  }
 }

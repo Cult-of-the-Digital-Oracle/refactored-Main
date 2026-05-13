@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Cult of the Digital Oracle — Frontend
 
-## Getting Started
+Next.js 16 frontend for the [Cult of the Digital Oracle](https://github.com) hackathon DApp on Mantle.
 
-First, run the development server:
+## Stack
+
+- **Next.js 16** (App Router, Turbopack)
+- **wagmi v2 + viem** — contract reads/writes
+- **RainbowKit** — wallet connection
+- **Tailwind CSS v4**
+
+## Pages
+
+| Route | Description |
+|-------|-------------|
+| `/` | Landing page — live prophecy from chain |
+| `/temple` | Stake USDY → mint Disciple NFT → claim USDY yield |
+| `/prophecies` | Archive of all past prophecies + fulfillment scores |
+| `/disciple/[tokenId]` | Shareable Disciple Card with OG image |
+
+## Setup
 
 ```bash
+cp .env.local.example .env.local
+# fill in contract addresses + WalletConnect project ID
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+NEXT_PUBLIC_WC_PROJECT_ID=
+NEXT_PUBLIC_ORACLE_MESSAGE_ADDRESS=0x163fd8daa2df8Ef5fb50EC18F734D4549824e639
+NEXT_PUBLIC_TEMPLE_VAULT_ADDRESS=0xFeC183003ba31EE7c298A8ffb321EF4B5FB88746
+NEXT_PUBLIC_BLESSING_DISTRIBUTOR_ADDRESS=0x35A0d20c9ad2867ab7E01CaF59420d64EA11E6Be
+NEXT_PUBLIC_USDY_ADDRESS=0x7ADbf2a8b9348cC1F6Ee88Db12F9415Ee55b9500
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Network
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Mantle Sepolia Testnet (chainId 5003). Switch network in wallet if prompted.

@@ -14,7 +14,7 @@ export async function generateProphecy(
   chainData: ChainSnapshot
 ): Promise<string> {
   const response = await client.chat.completions.create({
-    model: "gpt-4o",
+    model: "llama-3.3-70b-versatile",
     messages: [
       { role: "system", content: SYSTEM_PROMPT },
       {
@@ -27,6 +27,6 @@ export async function generateProphecy(
   });
 
   const text = response.choices[0]?.message?.content?.trim();
-  if (!text) throw new Error("OpenAI returned empty prophecy");
+  if (!text) throw new Error("Groq returned empty prophecy");
   return text;
 }

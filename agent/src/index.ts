@@ -20,7 +20,7 @@ const {
   TEMPLE_VAULT_ADDRESS: _vaultAddr,
   BLESSING_DISTRIBUTOR_ADDRESS,
   USDY_ADDRESS,
-  OPENAI_API_KEY,
+  GROQ_API_KEY,
   FULFILLMENT_THRESHOLD = "70",
   CRON_SCHEDULE = "0 0 * * *",
 } = process.env;
@@ -31,14 +31,17 @@ for (const [k, v] of Object.entries({
   ORACLE_MESSAGE_ADDRESS,
   BLESSING_DISTRIBUTOR_ADDRESS,
   USDY_ADDRESS,
-  OPENAI_API_KEY,
+  GROQ_API_KEY,
 })) {
   if (!v) throw new Error(`Missing env var: ${k}`);
 }
 
 const provider = new ethers.JsonRpcProvider(MANTLE_RPC_URL);
 const signer = new ethers.Wallet(ORACLE_PRIVATE_KEY!, provider);
-const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
+const openai = new OpenAI({
+  apiKey: GROQ_API_KEY,
+  baseURL: "https://api.groq.com/openai/v1",
+});
 const threshold = parseInt(FULFILLMENT_THRESHOLD);
 
 // Blessing yield amount per round (0.5 USDY = 500_000 units @ 6 decimals).
