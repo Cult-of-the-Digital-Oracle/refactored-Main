@@ -146,7 +146,16 @@ npx hardhat compile
 
 ## Demo helpers
 
-Seed a blessing round:
+Populate a richer demo with Disciples, check-ins, recorded shares, and a blessing round:
+
+```bash
+cd contracts
+npm run demo:populate -- --network mantleSepolia
+```
+
+For testnet, set `DEMO_DISCIPLE_PRIVATE_KEYS` to a comma-separated list of funded demo wallet private keys. Without it, the script uses available Hardhat signers, which is best for local runs.
+
+Seed only a blessing round:
 
 ```bash
 cd contracts
@@ -186,6 +195,15 @@ FULFILLMENT_THRESHOLD=70
 CRON_SCHEDULE=0 0 * * *
 ```
 
+Demo population can also use:
+
+```env
+DEMO_DISCIPLE_PRIVATE_KEYS=
+DEMO_STAKE_AMOUNTS=125,80,60,40,25
+DEMO_BLESSING_AMOUNT=25
+DEMO_BLESSING_DAY=
+```
+
 ## Current state
 
 Implemented:
@@ -194,6 +212,8 @@ Implemented:
 - prophecy resolution and blessing queue flow
 - Temple staking UX
 - Disciple NFT share page
+- public Disciple leaderboard
+- daily check-in and share karma actions
 - pixel-art frontend redesign
 - OG image generation for social sharing
 

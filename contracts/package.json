@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "hardhat test"
+    "test": "hardhat test",
+    "demo:populate": "hardhat run scripts/demo-populate.ts"
   },
   "keywords": [],
   "author": "",

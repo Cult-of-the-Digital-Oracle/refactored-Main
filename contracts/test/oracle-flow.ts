@@ -40,7 +40,12 @@ describe("Digital Oracle core flow", function () {
     await expect(
       oracleMessage
         .connect(oracle)
-        .resolveProphecy(day, 84, "Activity rose across sampled blocks.", "sampledTx=42; activeAddresses=21")
+        ["resolveProphecy(uint256,uint8,string,string)"](
+          day,
+          84,
+          "Activity rose across sampled blocks.",
+          "sampledTx=42; activeAddresses=21"
+        )
     )
       .to.emit(oracleMessage, "ProphecyResolved")
       .withArgs(day, 84, "Activity rose across sampled blocks.", "sampledTx=42; activeAddresses=21");
