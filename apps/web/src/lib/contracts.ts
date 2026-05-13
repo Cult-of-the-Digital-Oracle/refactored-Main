@@ -123,6 +123,16 @@ export const TEMPLE_VAULT_ABI = [
     outputs: [],
   },
   {
+    name: "recordShare",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "tokenId", type: "uint256" },
+      { name: "channel", type: "string" },
+    ],
+    outputs: [],
+  },
+  {
     name: "cardOf",
     type: "function",
     stateMutability: "view",
@@ -131,6 +141,13 @@ export const TEMPLE_VAULT_ABI = [
   },
   {
     name: "lastCheckInDay",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "tokenId", type: "uint256" }],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
+    name: "lastShareDay",
     type: "function",
     stateMutability: "view",
     inputs: [{ name: "tokenId", type: "uint256" }],
@@ -197,6 +214,17 @@ export const TEMPLE_VAULT_ABI = [
       { name: "disciple", type: "address", indexed: true },
       { name: "tokenId", type: "uint256", indexed: true },
       { name: "day", type: "uint256", indexed: false },
+      { name: "karmaAwarded", type: "uint256", indexed: false },
+    ],
+  },
+  {
+    name: "FaithShared",
+    type: "event",
+    inputs: [
+      { name: "disciple", type: "address", indexed: true },
+      { name: "tokenId", type: "uint256", indexed: true },
+      { name: "day", type: "uint256", indexed: false },
+      { name: "channel", type: "string", indexed: false },
       { name: "karmaAwarded", type: "uint256", indexed: false },
     ],
   },

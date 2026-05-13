@@ -92,6 +92,34 @@ describe("Digital Oracle core flow", function () {
     expect(disciple.karma).to.equal(10);
   });
 
+  it("allows one daily share reward for active disciples", async function () {
+    const { alice, usdy, vault } = await loadFixture(deployFixture);
+    const stakeAmount = ethers.parseUnits("25", 6);
+
+    await usdy.mint(alice.address, stakeAmount);
+    await usdy.connect(alice).approve(await vault.getAddress(), stakeAmount);
+    await vault.connect(alice).enter(stakeAmount);
+
+    await expect(vault.connect(alice).recordShare(1, "x"))
+      .to.emit(vault, "FaithShared")
+      .and.to.emit(vault, "KarmaGranted")
+      .withArgs(1, 3);
+
+    let disciple = await vault.disciples(1);
+    expect(disciple.karma).to.equal(3);
+
+    await expect(vault.connect(alice).recordShare(1, "x")).to.be.revertedWithCustomError(
+      vault,
+      "AlreadyShared"
+    );
+
+    await time.increase(24 * 60 * 60);
+    await vault.connect(alice).recordShare(1, "x");
+
+    disciple = await vault.disciples(1);
+    expect(disciple.karma).to.equal(6);
+  });
+
   it("preserves claims for past rounds after exit but blocks future rounds", async function () {
     const { oracle, alice, bob, usdy, vault, distributor } = await loadFixture(deployFixture);
     const stakeAmount = ethers.parseUnits("100", 6);

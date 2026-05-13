@@ -146,7 +146,7 @@ export default function LeaderboardPage() {
             </h1>
           </div>
           <p className="mt-3 max-w-3xl text-2xl text-[var(--pixel-muted)]">
-            Disciples ranked by active faith, daily karma, and earliest commitment to the Temple.
+            Disciples ranked by active faith, check-ins, public shares, and earliest commitment.
           </p>
         </div>
 
@@ -168,7 +168,7 @@ export default function LeaderboardPage() {
                 Ranking Rule
               </p>
               <p className="text-2xl text-[var(--pixel-muted)]">
-                Active stake dominates, daily check-in karma breaks ties, older Disciples hold priority.
+                Active stake dominates; check-ins and recorded shares add karma, and older Disciples hold priority.
               </p>
             </div>
             <Link

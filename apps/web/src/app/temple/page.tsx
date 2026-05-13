@@ -94,6 +94,14 @@ export default function TemplePage() {
     query: { enabled: isDisciple },
   });
 
+  const { data: lastShareDay, refetch: refetchLastShareDay } = useReadContract({
+    address: CONTRACTS.templeVault,
+    abi: TEMPLE_VAULT_ABI,
+    functionName: "lastShareDay",
+    args: [tokenId!],
+    query: { enabled: isDisciple },
+  });
+
   const { data: usdyBalance, refetch: refetchBalance } = useReadContract({
     address: CONTRACTS.usdy,
     abi: ERC20_ABI,
@@ -139,6 +147,7 @@ export default function TemplePage() {
     refetchAllowance();
     refetchDisciple();
     refetchLastCheckInDay();
+    refetchLastShareDay();
     resetWrite();
   }, [isSuccess]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -193,6 +202,16 @@ export default function TemplePage() {
       abi: TEMPLE_VAULT_ABI,
       functionName: "checkIn",
       args: [tokenId],
+    });
+  }
+
+  function handleRecordShare() {
+    if (!tokenId) return;
+    writeContract({
+      address: CONTRACTS.templeVault,
+      abi: TEMPLE_VAULT_ABI,
+      functionName: "recordShare",
+      args: [tokenId, "x"],
     });
   }
 
@@ -295,8 +314,10 @@ export default function TemplePage() {
                 tokenId={tokenId!}
                 disciple={disciple}
                 lastCheckInDay={lastCheckInDay}
+                lastShareDay={lastShareDay}
                 isBusy={isBusy}
                 onCheckIn={handleCheckIn}
+                onRecordShare={handleRecordShare}
                 onExit={handleExit}
               />
             ) : (
@@ -369,15 +390,19 @@ function DiscipleCard({
   tokenId,
   disciple,
   lastCheckInDay,
+  lastShareDay,
   isBusy,
   onCheckIn,
+  onRecordShare,
   onExit,
 }: {
   tokenId: bigint;
   disciple: Disciple;
   lastCheckInDay: bigint | undefined;
+  lastShareDay: bigint | undefined;
   isBusy: boolean;
   onCheckIn: () => void;
+  onRecordShare: () => void;
   onExit: () => void;
 }) {
   return (
@@ -417,8 +442,10 @@ function DiscipleCard({
       <div className="mt-5">
         <FaithActionPanel
           lastCheckInDay={lastCheckInDay}
+          lastShareDay={lastShareDay}
           isBusy={isBusy}
           onCheckIn={onCheckIn}
+          onRecordShare={onRecordShare}
         />
       </div>
 
@@ -441,6 +468,7 @@ function DiscipleCard({
           )}`}
           target="_blank"
           rel="noreferrer"
+          onClick={onRecordShare}
           className="pixel-button pixel-button-emerald inline-flex min-h-14 flex-1 items-center justify-center px-6 py-3 text-2xl uppercase tracking-[0.12em]"
         >
           Share To X
@@ -460,19 +488,24 @@ function DiscipleCard({
 
 function FaithActionPanel({
   lastCheckInDay,
+  lastShareDay,
   isBusy,
   onCheckIn,
+  onRecordShare,
 }: {
   lastCheckInDay: bigint | undefined;
+  lastShareDay: bigint | undefined;
   isBusy: boolean;
   onCheckIn: () => void;
+  onRecordShare: () => void;
 }) {
   const today = BigInt(Math.floor(Date.now() / 1000 / 86400));
   const alreadyCheckedIn = lastCheckInDay === today;
+  const alreadyShared = lastShareDay === today;
 
   return (
     <PixelFrame className="pixel-panel-soft px-4 py-4" round={1}>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="grid gap-4 lg:grid-cols-[1fr_auto_auto] lg:items-center">
         <div>
           <div className="flex items-center gap-2">
             <Image
@@ -487,7 +520,7 @@ function FaithActionPanel({
             </p>
           </div>
           <p className="mt-1 text-2xl text-[var(--pixel-muted)]">
-            {alreadyCheckedIn ? "Today's faith is recorded on-chain." : "Check in once per day to earn +5 karma."}
+            Check in for +5 karma and record one public share for +3 karma each day.
           </p>
         </div>
         <OracleButton
@@ -496,6 +529,14 @@ function FaithActionPanel({
           className="px-5"
         >
           {alreadyCheckedIn ? "Recorded" : "Check In"}
+        </OracleButton>
+        <OracleButton
+          onClick={onRecordShare}
+          disabled={isBusy || alreadyShared}
+          variant="danger"
+          className="px-5"
+        >
+          {alreadyShared ? "Shared" : "Record Share"}
         </OracleButton>
       </div>
     </PixelFrame>
