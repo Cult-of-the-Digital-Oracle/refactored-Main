@@ -12,8 +12,10 @@ const VAULT_ABI = [
     stateMutability: "view",
     inputs: [{ name: "tokenId", type: "uint256" }],
     outputs: [
+      { name: "disciple", type: "address" },
       { name: "stakeAmount", type: "uint256" },
       { name: "joinedAt", type: "uint256" },
+      { name: "exitedAt", type: "uint256" },
       { name: "karma", type: "uint256" },
       { name: "active", type: "bool" },
     ],
@@ -31,7 +33,14 @@ async function fetchDisciple(tokenId: string) {
       functionName: "disciples",
       args: [BigInt(tokenId)],
     });
-    const [stakeAmount, joinedAt, karma, active] = raw as [bigint, bigint, bigint, boolean];
+    const [, stakeAmount, joinedAt, , karma, active] = raw as [
+      `0x${string}`,
+      bigint,
+      bigint,
+      bigint,
+      bigint,
+      boolean,
+    ];
     return { stakeAmount, joinedAt, karma, active };
   } catch {
     return null;

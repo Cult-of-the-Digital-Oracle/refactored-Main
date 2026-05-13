@@ -36,8 +36,10 @@ const FAUCET_ABI = [
 ] as const;
 
 type Disciple = {
+  disciple: `0x${string}`;
   stakeAmount: bigint;
   joinedAt: bigint;
+  exitedAt: bigint;
   karma: bigint;
   active: boolean;
 };
@@ -102,10 +104,12 @@ export default function TemplePage() {
 
   const disciple: Disciple | undefined = discipleRaw
     ? {
-        stakeAmount: (discipleRaw as readonly [bigint, bigint, bigint, boolean])[0],
-        joinedAt: (discipleRaw as readonly [bigint, bigint, bigint, boolean])[1],
-        karma: (discipleRaw as readonly [bigint, bigint, bigint, boolean])[2],
-        active: (discipleRaw as readonly [bigint, bigint, bigint, boolean])[3],
+        disciple: (discipleRaw as readonly [`0x${string}`, bigint, bigint, bigint, bigint, boolean])[0],
+        stakeAmount: (discipleRaw as readonly [`0x${string}`, bigint, bigint, bigint, bigint, boolean])[1],
+        joinedAt: (discipleRaw as readonly [`0x${string}`, bigint, bigint, bigint, bigint, boolean])[2],
+        exitedAt: (discipleRaw as readonly [`0x${string}`, bigint, bigint, bigint, bigint, boolean])[3],
+        karma: (discipleRaw as readonly [`0x${string}`, bigint, bigint, bigint, bigint, boolean])[4],
+        active: (discipleRaw as readonly [`0x${string}`, bigint, bigint, bigint, bigint, boolean])[5],
       }
     : undefined;
 
@@ -501,7 +505,7 @@ function StakeForm({
       )}
 
       <p className="mt-4 text-center text-xl text-[var(--pixel-muted)]">
-        Soulbound identity. No transfer logic. Exit burns the Disciple and returns stake.
+        Soulbound identity. Exit burns the Disciple, returns stake, and preserves past blessing eligibility.
       </p>
     </PixelFrame>
   );
@@ -517,7 +521,7 @@ function ClaimPanel({ tokenId }: { tokenId: bigint }) {
   const roundsToCheck = nextRoundId ? Number(nextRoundId) - 1 : 0;
 
   const { data: pendingResults } = useReadContracts({
-    contracts: Array.from({ length: Math.min(roundsToCheck, 5) }, (_, i) => ({
+    contracts: Array.from({ length: roundsToCheck }, (_, i) => ({
       address: CONTRACTS.blessingDistributor,
       abi: BLESSING_DISTRIBUTOR_ABI,
       functionName: "pendingBlessing" as const,

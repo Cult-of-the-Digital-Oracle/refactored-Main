@@ -71,8 +71,6 @@ function scoreTheme(score: number) {
 }
 
 export default function PropheciesPage() {
-  const today = useMemo(() => Math.floor(Date.now() / 1000 / 86400), []);
-
   const { data: totalCount } = useReadContract({
     address: CONTRACTS.oracleMessage,
     abi: ORACLE_MESSAGE_ABI,
@@ -85,35 +83,67 @@ export default function PropheciesPage() {
     functionName: "totalFaith",
   });
 
-  const daysToCheck = useMemo(
-    () => Array.from({ length: 30 }, (_, i) => BigInt(today - i)),
-    [today]
+  const prophecyIndexes = useMemo(
+    () =>
+      Array.from({ length: Number(totalCount ?? 0n) }, (_, i) =>
+        BigInt(Number(totalCount ?? 0n) - 1 - i)
+      ),
+    [totalCount]
   );
 
-  const contracts = useMemo(
+  const dayContracts = useMemo(
     () =>
-      daysToCheck.map((day) => ({
+      prophecyIndexes.map((index) => ({
+        address: CONTRACTS.oracleMessage,
+        abi: ORACLE_MESSAGE_ABI,
+        functionName: "prophecyDays" as const,
+        args: [index] as const,
+      })),
+    [prophecyIndexes]
+  );
+
+  const { data: dayResults, isLoading: isLoadingDays } = useReadContracts({
+    contracts: dayContracts,
+    query: { enabled: dayContracts.length > 0 },
+  });
+
+  const prophecyDays = useMemo(
+    () =>
+      (dayResults ?? [])
+        .map((item) => (item.status === "success" ? (item.result as bigint) : null))
+        .filter((day): day is bigint => day !== null),
+    [dayResults]
+  );
+
+  const prophecyContracts = useMemo(
+    () =>
+      prophecyDays.map((day) => ({
         address: CONTRACTS.oracleMessage,
         abi: ORACLE_MESSAGE_ABI,
         functionName: "getProphecy" as const,
         args: [day] as const,
       })),
-    [daysToCheck]
+    [prophecyDays]
   );
 
-  const { data: results, isLoading } = useReadContracts({ contracts });
+  const { data: prophecyResults, isLoading: isLoadingProphecies } = useReadContracts({
+    contracts: prophecyContracts,
+    query: { enabled: prophecyContracts.length > 0 },
+  });
 
   const prophecies: ProphecyEntry[] = useMemo(() => {
-    if (!results) return [];
-    return results
+    if (!prophecyResults) return [];
+    return prophecyResults
       .map((item, i) => {
         if (item.status !== "success" || !item.result) return null;
         const p = item.result as unknown as Prophecy;
         if (!p.text) return null;
-        return { ...p, day: today - i };
+        return { ...p, day: Number(prophecyDays[i]) };
       })
       .filter((p): p is ProphecyEntry => p !== null);
-  }, [results, today]);
+  }, [prophecyDays, prophecyResults]);
+
+  const isLoading = isLoadingDays || isLoadingProphecies;
 
   return (
     <main className="pixel-grid relative min-h-screen overflow-hidden px-4 py-6 sm:px-6">

@@ -13,8 +13,10 @@ contract TempleVault is ERC721URIStorage, Ownable {
     using SafeERC20 for IERC20;
 
     struct Disciple {
+        address disciple;
         uint256 stakeAmount;   // USDY staked (6 decimals)
         uint256 joinedAt;
+        uint256 exitedAt;
         uint256 karma;
         bool active;
     }
@@ -59,8 +61,10 @@ contract TempleVault is ERC721URIStorage, Ownable {
         _safeMint(msg.sender, tokenId);
 
         disciples[tokenId] = Disciple({
+            disciple: msg.sender,
             stakeAmount: amount,
             joinedAt: block.timestamp,
+            exitedAt: 0,
             karma: 0,
             active: true
         });
@@ -77,7 +81,7 @@ contract TempleVault is ERC721URIStorage, Ownable {
         Disciple storage d = disciples[tokenId];
         uint256 amount = d.stakeAmount;
         d.active = false;
-        d.stakeAmount = 0;
+        d.exitedAt = block.timestamp;
         totalFaith -= amount;
         cardOf[msg.sender] = 0;
 
@@ -100,6 +104,20 @@ contract TempleVault is ERC721URIStorage, Ownable {
 
     function setTokenURI(uint256 tokenId, string calldata uri) external onlyOracle {
         _setTokenURI(tokenId, uri);
+    }
+
+    /// @notice Canonical claimant for historical blessings tied to this Disciple.
+    function claimantOf(uint256 tokenId) external view returns (address) {
+        return disciples[tokenId].disciple;
+    }
+
+    /// @notice Historical eligibility helper for blessing rounds snapped at `timestamp`.
+    function eligibleStakeAt(uint256 tokenId, uint256 timestamp) external view returns (uint256) {
+        Disciple memory d = disciples[tokenId];
+        if (d.disciple == address(0)) return 0;
+        if (d.joinedAt > timestamp) return 0;
+        if (d.exitedAt != 0 && d.exitedAt <= timestamp) return 0;
+        return d.stakeAmount;
     }
 
     // ── Soulbound: block all transfers except mint/burn ──────────────────────

@@ -5,6 +5,7 @@ const ORACLE_MESSAGE_ABI = [
   "function postProphecy(string calldata text) external returns (uint256 day)",
   "function resolveProphecy(uint256 day, uint8 score) external",
   "function getProphecy(uint256 day) external view returns (tuple(string text, uint256 timestamp, uint8 fulfillmentScore, bool resolved))",
+  "function todaysProphecy() external view returns (tuple(string text, uint256 timestamp, uint8 fulfillmentScore, bool resolved))",
 ];
 
 const BLESSING_DISTRIBUTOR_ABI = [
@@ -65,12 +66,29 @@ export async function getYesterdayProphecy(
   oracleMessageAddr: string
 ): Promise<{ text: string; day: bigint; resolved: boolean } | null> {
   const contract = new ethers.Contract(oracleMessageAddr, ORACLE_MESSAGE_ABI, provider);
-  const yesterday = BigInt(Math.floor(Date.now() / 1000 / 86400)) - 1n;
+  const latest = await provider.getBlock("latest");
+  if (!latest) return null;
+  const yesterday = BigInt(Math.floor(latest.timestamp / 86400)) - 1n;
 
   try {
     const p = await contract.getProphecy(yesterday);
     if (!p.text || p.text === "") return null;
     return { text: p.text, day: yesterday, resolved: p.resolved };
+  } catch {
+    return null;
+  }
+}
+
+export async function getTodaysProphecy(
+  provider: ethers.JsonRpcProvider,
+  oracleMessageAddr: string
+): Promise<{ text: string; resolved: boolean } | null> {
+  const contract = new ethers.Contract(oracleMessageAddr, ORACLE_MESSAGE_ABI, provider);
+
+  try {
+    const p = await contract.todaysProphecy();
+    if (!p.text || p.text === "") return null;
+    return { text: p.text, resolved: p.resolved };
   } catch {
     return null;
   }

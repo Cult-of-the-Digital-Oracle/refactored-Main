@@ -11,6 +11,7 @@ import {
   resolveProphecy,
   queueBlessing,
   getYesterdayProphecy,
+  getTodaysProphecy,
 } from "./postToChain";
 
 const {
@@ -78,13 +79,18 @@ async function runOracleCycle() {
     }
   }
 
-  // ── 2. Post today's prophecy ──────────────────────────────────────────────
-  console.log("Generating today's prophecy...");
-  const prophecyText = await generateProphecy(openai, chainData);
-  console.log(`  Prophecy: "${prophecyText}"`);
+  // ── 2. Post today's prophecy if absent ────────────────────────────────────
+  const todaysProphecy = await getTodaysProphecy(provider, ORACLE_MESSAGE_ADDRESS!);
+  if (todaysProphecy) {
+    console.log("Today's prophecy already exists on-chain. Skipping post.");
+  } else {
+    console.log("Generating today's prophecy...");
+    const prophecyText = await generateProphecy(openai, chainData);
+    console.log(`  Prophecy: "${prophecyText}"`);
 
-  const { day, txHash } = await postProphecy(signer, ORACLE_MESSAGE_ADDRESS!, prophecyText);
-  console.log(`  Posted on-chain (day ${day}): ${txHash}`);
+    const { day, txHash } = await postProphecy(signer, ORACLE_MESSAGE_ADDRESS!, prophecyText);
+    console.log(`  Posted on-chain (day ${day}): ${txHash}`);
+  }
 
   console.log("Oracle cycle complete.\n");
 }

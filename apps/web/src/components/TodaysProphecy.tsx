@@ -1,7 +1,5 @@
 "use client";
 
-"use client";
-
 import Image from "next/image";
 import { useReadContract } from "wagmi";
 import { CONTRACTS, ORACLE_MESSAGE_ABI } from "@/lib/contracts";

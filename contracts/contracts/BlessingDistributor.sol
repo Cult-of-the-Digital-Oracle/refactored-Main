@@ -15,6 +15,7 @@ contract BlessingDistributor is Ownable {
         uint256 day;           // prophecy day index
         uint256 yieldPool;     // total USDY to distribute
         uint256 totalFaithSnap; // totalFaith snapshot at queue time
+        uint256 queuedAt;      // snapshot timestamp used for stake eligibility
         bool settled;
     }
 
@@ -23,6 +24,7 @@ contract BlessingDistributor is Ownable {
     error AlreadyClaimed();
     error NothingToClaim();
     error InsufficientYieldPool();
+    error NoActiveFaith();
 
     event BlessingQueued(uint256 indexed roundId, uint256 day, uint256 yieldPool);
     event BlessingClaimed(uint256 indexed roundId, uint256 indexed tokenId, address indexed disciple, uint256 amount);
@@ -52,13 +54,16 @@ contract BlessingDistributor is Ownable {
     ///         Caller must have pre-approved `yieldAmount` USDY to this contract.
     function queueBlessing(uint256 day, uint256 yieldAmount) external onlyOracle {
         if (yieldAmount == 0) revert InsufficientYieldPool();
+        uint256 totalFaithSnap = vault.totalFaith();
+        if (totalFaithSnap == 0) revert NoActiveFaith();
         usdy.safeTransferFrom(msg.sender, address(this), yieldAmount);
 
         uint256 id = nextRoundId++;
         rounds[id] = BlessingRound({
             day: day,
             yieldPool: yieldAmount,
-            totalFaithSnap: vault.totalFaith(),
+            totalFaithSnap: totalFaithSnap,
+            queuedAt: block.timestamp,
             settled: false
         });
 
@@ -71,13 +76,8 @@ contract BlessingDistributor is Ownable {
         if (r.yieldPool == 0) revert RoundNotFound();
         if (claimed[roundId][tokenId]) revert AlreadyClaimed();
 
-        // verify caller owns the token
-        require(vault.ownerOf(tokenId) == msg.sender, "not your NFT");
-
-        (uint256 stakeAmount,,,) = vault.disciples(tokenId);
-        if (stakeAmount == 0) revert NothingToClaim();
-
-        uint256 share = (stakeAmount * r.yieldPool) / r.totalFaithSnap;
+        require(vault.claimantOf(tokenId) == msg.sender, "not your Disciple");
+        uint256 share = _pendingBlessing(r, tokenId);
         if (share == 0) revert NothingToClaim();
 
         claimed[roundId][tokenId] = true;
@@ -90,9 +90,7 @@ contract BlessingDistributor is Ownable {
     function pendingBlessing(uint256 roundId, uint256 tokenId) external view returns (uint256) {
         BlessingRound storage r = rounds[roundId];
         if (r.yieldPool == 0 || claimed[roundId][tokenId]) return 0;
-        (uint256 stakeAmount,,,) = vault.disciples(tokenId);
-        if (stakeAmount == 0 || r.totalFaithSnap == 0) return 0;
-        return (stakeAmount * r.yieldPool) / r.totalFaithSnap;
+        return _pendingBlessing(r, tokenId);
     }
 
     /// @notice Owner can seed the yield pool directly (for hackathon demo).
@@ -102,5 +100,12 @@ contract BlessingDistributor is Ownable {
 
     function setOracle(address _oracle) external onlyOwner {
         oracle = _oracle;
+    }
+
+    function _pendingBlessing(BlessingRound storage r, uint256 tokenId) internal view returns (uint256) {
+        if (r.totalFaithSnap == 0) return 0;
+        uint256 stakeAmount = vault.eligibleStakeAt(tokenId, r.queuedAt);
+        if (stakeAmount == 0) return 0;
+        return (stakeAmount * r.yieldPool) / r.totalFaithSnap;
     }
 }

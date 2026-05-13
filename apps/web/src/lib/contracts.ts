@@ -67,6 +67,13 @@ export const ORACLE_MESSAGE_ABI = [
     outputs: [{ name: "", type: "uint256" }],
   },
   {
+    name: "prophecyDays",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "", type: "uint256" }],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
     name: "ProphecyDelivered",
     type: "event",
     inputs: [
@@ -113,8 +120,10 @@ export const TEMPLE_VAULT_ABI = [
     stateMutability: "view",
     inputs: [{ name: "tokenId", type: "uint256" }],
     outputs: [
+      { name: "disciple", type: "address" },
       { name: "stakeAmount", type: "uint256" },
       { name: "joinedAt", type: "uint256" },
+      { name: "exitedAt", type: "uint256" },
       { name: "karma", type: "uint256" },
       { name: "active", type: "bool" },
     ],
@@ -124,6 +133,23 @@ export const TEMPLE_VAULT_ABI = [
     type: "function",
     stateMutability: "view",
     inputs: [],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
+    name: "claimantOf",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "tokenId", type: "uint256" }],
+    outputs: [{ name: "", type: "address" }],
+  },
+  {
+    name: "eligibleStakeAt",
+    type: "function",
+    stateMutability: "view",
+    inputs: [
+      { name: "tokenId", type: "uint256" },
+      { name: "timestamp", type: "uint256" },
+    ],
     outputs: [{ name: "", type: "uint256" }],
   },
   {
@@ -167,6 +193,7 @@ export const BLESSING_DISTRIBUTOR_ABI = [
       { name: "day", type: "uint256" },
       { name: "yieldPool", type: "uint256" },
       { name: "totalFaithSnap", type: "uint256" },
+      { name: "queuedAt", type: "uint256" },
       { name: "settled", type: "bool" },
     ],
   },

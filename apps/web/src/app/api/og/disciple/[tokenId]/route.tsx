@@ -10,8 +10,10 @@ const VAULT_ABI = [
     stateMutability: "view",
     inputs: [{ name: "tokenId", type: "uint256" }],
     outputs: [
+      { name: "disciple", type: "address" },
       { name: "stakeAmount", type: "uint256" },
       { name: "joinedAt", type: "uint256" },
+      { name: "exitedAt", type: "uint256" },
       { name: "karma", type: "uint256" },
       { name: "active", type: "bool" },
     ],
@@ -49,7 +51,14 @@ export async function GET(
       args: [BigInt(tokenId)],
     });
 
-    const [stakeAmount, joinedAt, karmaVal] = raw as [bigint, bigint, bigint, boolean];
+    const [, stakeAmount, joinedAt, , karmaVal] = raw as [
+      `0x${string}`,
+      bigint,
+      bigint,
+      bigint,
+      bigint,
+      boolean,
+    ];
     staked = Number(formatUnits(stakeAmount, 6)).toFixed(2);
     karma = karmaVal.toString();
     date = new Date(Number(joinedAt) * 1000).toLocaleDateString("en-US", {
