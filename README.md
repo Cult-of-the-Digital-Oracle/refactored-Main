@@ -1,52 +1,204 @@
-# Mantle Trading Card Battle
+# Cult of the Digital Oracle
 
-> Submission for **The Turing Test Hackathon 2026** by Mantle — track: **Consumer & Viral DApps** (AI Awakening phase).
+> The Turing Test Hackathon 2026 by Mantle - Consumer & Viral DApps
 
-Your wallet is your character sheet. Connect, let the AI scan your on-chain history, and mint a soulbound **trading card** with derived stats (ATK / DEF / Vibe). Stake MNT, challenge other holders, and let an AI resolver settle the battle. Cards are issued as ERC-8004-style identity NFTs — your reputation accrues on Mantle.
+An AI agent reads the Mantle blockchain every day, writes a cryptic prophecy on-chain, and later judges whether that prophecy came true. Users stake USDY into the Temple, mint a soulbound Disciple NFT, and claim yield when the Oracle declares fulfillment.
 
-## Why this fits the track
+## What it is
 
-- **Consumer hook:** one-tap mint from a wallet → instant shareable card art.
-- **Viral loop:** PvP wagers + leaderboard + share-card-to-X.
-- **On-chain AI:** every card score and battle outcome is a Mantle tx, satisfying the hackathon's "permanent record of AI performance" rule.
+Cult of the Digital Oracle is a Mantle-native social DeFi experiment:
 
-## Stack
+- An AI oracle turns real chain data into eerie daily prophecies.
+- Every prophecy is recorded on-chain.
+- Believers stake USDY and receive a soulbound Disciple identity.
+- Fulfilled prophecies trigger blessing rounds and USDY distribution.
+- Each Disciple has a shareable pixel-art card with an OG image.
 
-| Layer | Tool |
-|---|---|
-| Frontend | Next.js 16 (App Router, RSC), Tailwind v4, TypeScript |
-| Wallet | wagmi v2 + viem + RainbowKit |
-| Contracts | Hardhat + Solidity 0.8.27 (Cancun), OpenZeppelin |
-| Network | Mantle Sepolia (chainId 5003) → Mantle (5000) |
-| AI | OpenAI for card scoring + battle resolution (off-chain agent, on-chain commits) |
+The point is not just "AI on crypto." The point is an auditable AI ritual with on-chain memory, identity, and rewards.
 
-## Layout
+## User flow
 
+1. Open `/temple` and connect a wallet.
+2. Mint test USDY with the faucet.
+3. Approve USDY and enter the Temple.
+4. Receive a soulbound Disciple NFT tied to the wallet.
+5. Wait for prophecy fulfillment rounds.
+6. Claim blessing yield pro-rata based on stake.
+7. Share the Disciple card via `/disciple/[tokenId]`.
+
+## Oracle flow
+
+Once per day, the agent:
+
+1. Fetches Mantle chain data.
+2. Evaluates yesterday's prophecy against today's chain conditions.
+3. Resolves that prophecy with a score from 0 to 100.
+4. Queues a blessing round when the score meets the threshold.
+5. Generates and posts today's prophecy on-chain.
+
+## Smart contracts
+
+### `OracleMessage.sol`
+
+Stores one prophecy per UTC day and its fulfillment result.
+
+Core functions:
+
+```solidity
+postProphecy(string text)
+resolveProphecy(uint256 day, uint8 score)
+todaysProphecy() returns (Prophecy)
+getProphecy(uint256 day) returns (Prophecy)
 ```
+
+### `TempleVault.sol`
+
+Accepts USDY deposits and mints a soulbound Disciple NFT. One Disciple per wallet.
+
+Core functions:
+
+```solidity
+enter(uint256 amount) returns (uint256 tokenId)
+exit(uint256 tokenId)
+cardOf(address wallet) returns (uint256 tokenId)
+totalFaith() returns (uint256)
+```
+
+### `BlessingDistributor.sol`
+
+Distributes yield pro-rata after fulfilled prophecies.
+
+Core functions:
+
+```solidity
+queueBlessing(uint256 day, uint256 amount)
+claim(uint256 roundId, uint256 tokenId)
+pendingBlessing(uint256 roundId, uint256 tokenId) returns (uint256)
+```
+
+### `MockUSDY.sol`
+
+Test token with 6 decimals and a public faucet for demo flow.
+
+## Frontend routes
+
+- `/` - landing page with live prophecy and pixel-art presentation
+- `/temple` - faucet, approve, stake, disciple card, claim
+- `/prophecies` - prophecy archive with fulfillment states
+- `/disciple/[tokenId]` - shareable Disciple identity page
+- `/api/og/disciple/[tokenId]` - dynamic OG image endpoint
+
+## Tech stack
+
+| Layer | Stack |
+| --- | --- |
+| Frontend | Next.js 16, React, Tailwind v4, TypeScript |
+| Web3 | wagmi, viem, RainbowKit |
+| Contracts | Hardhat, Solidity 0.8.27, OpenZeppelin |
+| Agent | Node.js, ethers v6, Groq API via OpenAI-compatible SDK |
+| Network | Mantle Sepolia |
+| OG images | `next/og` edge runtime |
+
+## Repository structure
+
+```text
 hackathon-mantle/
-├─ apps/web/          # Next.js frontend
-└─ contracts/         # Hardhat: TradingCard.sol, BattleArena.sol
+|-- apps/web/               # Next.js frontend
+|   `-- src/
+|       |-- app/            # routes and OG API
+|       |-- components/     # UI building blocks
+|       `-- lib/            # wagmi config, contract constants, asset manifest
+|-- contracts/              # Hardhat project
+|   |-- contracts/
+|   `-- scripts/
+|-- agent/                  # AI oracle backend
+|   `-- src/
+|-- PROJECT.md              # product and pitch context
+|-- CLAUDE.md               # repo-specific coding notes
+`-- PIXEL_ART_PROMPTS.md    # source prompt set for generated asset pack
 ```
 
 ## Quick start
 
-```bash
-# 1. Frontend
-cd apps/web
-cp .env.local.example .env.local   # fill NEXT_PUBLIC_WC_PROJECT_ID etc
-npm run dev
+### Frontend
 
-# 2. Contracts
-cd contracts
-cp .env.example .env               # fill PRIVATE_KEY
-npx hardhat compile
-npx hardhat run scripts/deploy.ts --network mantleSepolia
+```bash
+cd apps/web
+npm install
+npm run dev
 ```
 
-Get test MNT from the Mantle Sepolia faucet, then paste the deployed addresses into `apps/web/.env.local`.
+### Agent
 
-## Hackathon links
+```bash
+cd agent
+npm install
+npm run dev
+```
 
-- Hackathon: https://dorahacks.io/hackathon/mantleturingtesthackathon2026
-- Phase: AI Awakening · Consumer & Viral DApps
-- Deadline: **June 16, 2026**
+### Contracts
+
+```bash
+cd contracts
+npm install
+npx hardhat compile
+```
+
+## Demo helpers
+
+Seed a blessing round:
+
+```bash
+cd contracts
+npx hardhat run scripts/demo-seed.ts --network mantleSepolia
+```
+
+Send gas to a test wallet:
+
+```bash
+cd contracts
+npx tsx scripts/topup.ts <wallet-address>
+```
+
+## Environment
+
+Frontend expects:
+
+```env
+NEXT_PUBLIC_WC_PROJECT_ID=
+NEXT_PUBLIC_ORACLE_MESSAGE_ADDRESS=
+NEXT_PUBLIC_TEMPLE_VAULT_ADDRESS=
+NEXT_PUBLIC_BLESSING_DISTRIBUTOR_ADDRESS=
+NEXT_PUBLIC_USDY_ADDRESS=
+```
+
+Agent expects:
+
+```env
+MANTLE_RPC_URL=https://rpc.sepolia.mantle.xyz
+ORACLE_PRIVATE_KEY=
+ORACLE_MESSAGE_ADDRESS=
+TEMPLE_VAULT_ADDRESS=
+BLESSING_DISTRIBUTOR_ADDRESS=
+USDY_ADDRESS=
+GROQ_API_KEY=
+FULFILLMENT_THRESHOLD=70
+CRON_SCHEDULE=0 0 * * *
+```
+
+## Current state
+
+Implemented:
+
+- on-chain prophecy posting
+- prophecy resolution and blessing queue flow
+- Temple staking UX
+- Disciple NFT share page
+- pixel-art frontend redesign
+- OG image generation for social sharing
+
+## Hackathon
+
+- Event: https://dorahacks.io/hackathon/mantleturingtesthackathon2026
+- Track: Consumer & Viral DApps
+- Network: Mantle Sepolia for demo
