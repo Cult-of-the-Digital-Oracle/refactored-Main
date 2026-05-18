@@ -1,13 +1,51 @@
-export function PanelCorners() {
-  const corner =
-    "pointer-events-none absolute z-10 h-7 w-7 border-[3px] border-[var(--pixel-border)] opacity-80";
+import Image from "next/image";
+import { ORACLE_ASSETS } from "@/lib/oracleAssets";
 
+const SIZE = 56;
+
+export function PanelCorners({ size = SIZE }: { size?: number }) {
   return (
     <>
-      <span className={`${corner} left-3 top-3 border-b-0 border-r-0`} aria-hidden="true" />
-      <span className={`${corner} right-3 top-3 border-b-0 border-l-0`} aria-hidden="true" />
-      <span className={`${corner} bottom-3 left-3 border-r-0 border-t-0`} aria-hidden="true" />
-      <span className={`${corner} bottom-3 right-3 border-l-0 border-t-0`} aria-hidden="true" />
+      {/* top-left */}
+      <Image
+        src={ORACLE_ASSETS.decoratives.cornerOrnament}
+        alt=""
+        width={size}
+        height={size}
+        aria-hidden="true"
+        className="pointer-events-none absolute left-0 top-0 pixelated z-10 opacity-85"
+        style={{ imageRendering: "pixelated" }}
+      />
+      {/* top-right — mirror horizontally */}
+      <Image
+        src={ORACLE_ASSETS.decoratives.cornerOrnament}
+        alt=""
+        width={size}
+        height={size}
+        aria-hidden="true"
+        className="pointer-events-none absolute right-0 top-0 pixelated z-10 opacity-85"
+        style={{ imageRendering: "pixelated", transform: "scaleX(-1)" }}
+      />
+      {/* bottom-left — mirror vertically */}
+      <Image
+        src={ORACLE_ASSETS.decoratives.cornerOrnament}
+        alt=""
+        width={size}
+        height={size}
+        aria-hidden="true"
+        className="pointer-events-none absolute bottom-0 left-0 pixelated z-10 opacity-85"
+        style={{ imageRendering: "pixelated", transform: "scaleY(-1)" }}
+      />
+      {/* bottom-right — mirror both */}
+      <Image
+        src={ORACLE_ASSETS.decoratives.cornerOrnament}
+        alt=""
+        width={size}
+        height={size}
+        aria-hidden="true"
+        className="pointer-events-none absolute bottom-0 right-0 pixelated z-10 opacity-85"
+        style={{ imageRendering: "pixelated", transform: "scale(-1, -1)" }}
+      />
     </>
   );
 }

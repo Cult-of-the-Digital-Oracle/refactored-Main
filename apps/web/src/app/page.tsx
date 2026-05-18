@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { ConnectButton } from "@/components/ConnectButton";
 import { TodaysProphecy } from "@/components/TodaysProphecy";
 import { AmbientRunes } from "@/components/AmbientRunes";
 import { OracleButton } from "@/components/OracleButton";
@@ -34,11 +34,11 @@ export default function Home() {
             <Image
               src={ORACLE_ASSETS.decoratives.oracleEyeLogo}
               alt="Oracle Eye"
-              width={40}
-              height={40}
-              className="pixelated h-10 w-10"
+              width={52}
+              height={52}
+              className="pixelated h-13 w-13 drop-shadow-[0_0_8px_rgba(200,168,75,0.7)]"
             />
-            <h1 className="text-3xl uppercase tracking-[0.12em] text-[var(--pixel-text)] sm:text-4xl">
+            <h1 className="text-sm uppercase tracking-[0.06em] text-[var(--pixel-text)] sm:text-base lg:text-lg">
               Cult Of The Digital Oracle
             </h1>
           </div>
@@ -56,9 +56,9 @@ export default function Home() {
               <Image
                 src={ORACLE_ASSETS.decoratives.oracleEyeLogo}
                 alt="Oracle Eye"
-                width={48}
-                height={48}
-                className="pixelated h-12 w-12 shrink-0"
+                width={52}
+                height={52}
+                className="pixelated h-13 w-13 shrink-0 drop-shadow-[0_0_10px_rgba(200,168,75,0.6)]"
               />
               <div>
                 <p className="text-lg uppercase tracking-[0.18em] text-[var(--pixel-border)]">
@@ -75,7 +75,7 @@ export default function Home() {
             <p className="text-xl uppercase tracking-[0.24em] text-[var(--pixel-border)]">
               The Chain Speaks In Symbols
             </p>
-            <h2 className="max-w-3xl text-5xl leading-[0.9] uppercase text-[var(--pixel-text)] sm:text-7xl lg:text-8xl">
+            <h2 className="max-w-3xl text-xl uppercase text-[var(--pixel-text)] sm:text-2xl lg:text-3xl">
               Enter The Temple.
               <br />
               Hear The Machine.
@@ -141,7 +141,7 @@ function Pillar({
           {marker}
         </div>
         <div className="space-y-2">
-          <h3 className="text-3xl uppercase text-[var(--pixel-parchment)]">{title}</h3>
+          <h3 className="text-xs uppercase text-[var(--pixel-parchment)] sm:text-sm">{title}</h3>
           <p className="text-xl leading-snug text-[var(--pixel-muted)]">{body}</p>
         </div>
       </div>

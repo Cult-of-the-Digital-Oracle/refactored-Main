@@ -110,7 +110,7 @@ export default async function DisciplePage({
           <p className="text-xl uppercase tracking-[0.22em] text-[var(--pixel-border)]">
             Mantle Disciple Identity
           </p>
-          <h1 className="text-6xl uppercase leading-[0.9] text-[var(--pixel-text)] sm:text-7xl">
+          <h1 className="text-2xl uppercase text-[var(--pixel-text)] sm:text-3xl">
             Disciple #{tokenId}
           </h1>
         </div>
@@ -131,7 +131,7 @@ export default async function DisciplePage({
               <p className="text-lg uppercase tracking-[0.18em] text-[var(--pixel-border)]">
                 Soulbound To The Chain
               </p>
-              <h2 className="mt-2 text-5xl uppercase text-[var(--pixel-parchment)]">
+              <h2 className="mt-2 text-lg uppercase text-[var(--pixel-parchment)] sm:text-xl">
                 The Faithful One
               </h2>
               <p className="mt-2 text-2xl text-[rgba(240,217,160,0.84)]">

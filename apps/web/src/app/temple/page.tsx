@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { ConnectKitButton } from "connectkit";
 import {
   useAccount,
   useReadContract,
@@ -244,7 +244,7 @@ export default function TemplePage() {
           </Link>
         </div>
         <PixelFrame className="pixel-panel-soft px-3 py-2" round={1}>
-          <ConnectButton />
+          <ConnectKitButton />
         </PixelFrame>
       </header>
 
@@ -263,7 +263,7 @@ export default function TemplePage() {
                   height={64}
                   className="pixelated h-14 w-14 shrink-0"
                 />
-                <h1 className="text-6xl uppercase leading-[0.9] text-[var(--pixel-text)] sm:text-7xl">
+                <h1 className="text-2xl uppercase text-[var(--pixel-text)] sm:text-3xl lg:text-4xl">
                   The Temple
                 </h1>
               </div>
@@ -306,7 +306,7 @@ export default function TemplePage() {
                   The Temple only recognizes believers who step forward with a wallet.
                 </p>
                 <div className="mt-5 flex justify-center">
-                  <ConnectButton />
+                  <ConnectKitButton />
                 </div>
               </PixelFrame>
             ) : isDisciple && disciple ? (
@@ -421,7 +421,7 @@ function DiscipleCard({
             className="pixelated h-30 w-30"
           />
         </div>
-        <h2 className="mt-2 text-5xl uppercase text-[var(--pixel-parchment)]">The Faithful One</h2>
+        <h2 className="mt-2 text-lg uppercase text-[var(--pixel-parchment)] sm:text-xl">The Faithful One</h2>
         <p className="mt-2 text-2xl text-[rgba(240,217,160,0.82)]">
           Soulbound to the chain. Exit anytime to reclaim your USDY.
         </p>

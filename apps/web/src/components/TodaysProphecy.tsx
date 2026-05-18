@@ -39,13 +39,14 @@ export function TodaysProphecy() {
           src={ORACLE_ASSETS.decoratives.horizontalDivider}
           alt=""
           fill
+          sizes="(max-width: 1024px) 100vw, 50vw"
           className="object-cover"
         />
       </div>
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Image
-            src={ORACLE_ASSETS.ui.prophecyIcon}
+            src={ORACLE_ASSETS.ui.chainLink}
             alt="Prophecy"
             width={28}
             height={28}

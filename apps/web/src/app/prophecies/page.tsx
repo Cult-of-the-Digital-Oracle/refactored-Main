@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useMemo } from "react";
 import Link from "next/link";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { ConnectKitButton } from "connectkit";
 import { useReadContract, useReadContracts } from "wagmi";
 import { formatUnits } from "viem";
 import { CONTRACTS, ORACLE_MESSAGE_ABI, TEMPLE_VAULT_ABI } from "@/lib/contracts";
@@ -176,7 +176,7 @@ export default function PropheciesPage() {
           </Link>
         </div>
         <PixelFrame className="pixel-panel-soft px-3 py-2" round={1}>
-          <ConnectButton />
+          <ConnectKitButton />
         </PixelFrame>
       </header>
 
@@ -193,7 +193,7 @@ export default function PropheciesPage() {
               height={56}
               className="pixelated h-12 w-12 shrink-0"
             />
-            <h1 className="text-6xl uppercase leading-[0.9] text-[var(--pixel-text)] sm:text-7xl">
+            <h1 className="text-2xl uppercase text-[var(--pixel-text)] sm:text-3xl lg:text-4xl">
               The Archive
             </h1>
           </div>

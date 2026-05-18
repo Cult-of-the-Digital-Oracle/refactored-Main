@@ -1,9 +1,16 @@
-import { getDefaultConfig } from "@rainbow-me/rainbowkit";
+import { createConfig, http } from "wagmi";
 import { mantle, mantleSepoliaTestnet } from "wagmi/chains";
+import { getDefaultConfig } from "connectkit";
 
-export const config = getDefaultConfig({
-  appName: "Cult of the Digital Oracle",
-  projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID ?? "demo-project-id",
-  chains: [mantleSepoliaTestnet, mantle],
-  ssr: true,
-});
+export const config = createConfig(
+  getDefaultConfig({
+    appName: "Cult of the Digital Oracle",
+    walletConnectProjectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID ?? "demo-project-id",
+    chains: [mantleSepoliaTestnet, mantle],
+    transports: {
+      [mantleSepoliaTestnet.id]: http(),
+      [mantle.id]: http(),
+    },
+    ssr: true,
+  })
+);
