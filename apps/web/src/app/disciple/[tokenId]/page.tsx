@@ -56,11 +56,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { tokenId } = await params;
   const ogUrl = `/api/og/disciple/${tokenId}`;
-
   return {
     title: `Disciple #${tokenId} · Cult of the Digital Oracle`,
-    description:
-      "I joined the Cult of the Digital Oracle on Mantle. My soul is bound to the chain.",
+    description: "I joined the Cult of the Digital Oracle on Mantle. My soul is bound to the chain.",
     openGraph: {
       title: `Disciple #${tokenId} · Cult of the Digital Oracle`,
       description: "Soulbound to the chain. The Oracle speaks my name.",
@@ -90,17 +88,16 @@ export default async function DisciplePage({
   const date = disciple
     ? new Date(Number(disciple.joinedAt) * 1000).toLocaleDateString("en-US", {
         month: "short",
-        day: "numeric",
         year: "numeric",
       })
     : "—";
   const idPadded = tokenId.padStart(3, "0");
   const tweetText = encodeURIComponent(
-    `The Oracle named me "${name}" — Disciple #${tokenId} in the Cult of the Digital Oracle on Mantle.\n\nhttps://web-red-nine-58.vercel.app/disciple/${tokenId}`
+    `The Oracle named me "${name}" — Disciple #${tokenId} in the Cult of the Digital Oracle on Mantle.\nhttps://web-red-nine-58.vercel.app/disciple/${tokenId}`
   );
 
   return (
-    <main className="pixel-grid relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-10">
+    <main className="pixel-grid relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-6">
       <Image
         src={ORACLE_ASSETS.backgrounds.templeInterior}
         alt=""
@@ -109,112 +106,85 @@ export default async function DisciplePage({
         className="pointer-events-none object-cover object-center opacity-22"
       />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(74,158,107,0.18),transparent_55%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(13,10,6,0.55),rgba(13,10,6,0.25)_40%,rgba(13,10,6,0.75))]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(13,10,6,0.5),rgba(13,10,6,0.2)_50%,rgba(13,10,6,0.7))]" />
 
-      <div className="relative z-10 flex w-full max-w-sm flex-col items-center gap-5 text-center">
+      <div className="relative z-10 flex w-full max-w-xs flex-col items-center gap-4 text-center">
 
-        {/* Branding */}
-        <div className="flex items-center gap-2">
-          <Image
-            src={ORACLE_ASSETS.decoratives.oracleEyeLogo}
-            alt=""
-            width={20}
-            height={20}
-            className="pixelated opacity-70"
-          />
-          <p className="text-sm uppercase tracking-[0.28em] text-[var(--pixel-muted)]">
-            Cult Of The Digital Oracle
-          </p>
-        </div>
-
-        {/* Token number */}
-        <p className="text-8xl uppercase text-[var(--pixel-border)] drop-shadow-[0_0_24px_rgba(200,168,75,0.45)]">
-          #{idPadded}
+        {/* Tiny branding */}
+        <p className="text-sm uppercase tracking-[0.26em] text-[var(--pixel-muted)]">
+          Cult Of The Digital Oracle
         </p>
 
-        {/* Portrait with glow ring */}
-        <div className="relative">
-          <div className="absolute inset-0 scale-110 rounded-full bg-[var(--pixel-emerald)] opacity-15 blur-2xl" />
-          <PixelFrame className="pixel-panel-emerald p-3" round={2}>
-            <PanelCorners />
-            <Image
-              src={ORACLE_ASSETS.characters.discipleCardPortrait}
-              alt="Disciple portrait"
-              width={160}
-              height={160}
-              className="pixelated h-40 w-40"
-            />
-          </PixelFrame>
-          {disciple?.active && (
-            <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap bg-[var(--pixel-emerald)] px-3 py-1 text-lg uppercase tracking-[0.18em] text-[#0d1f14] shadow-[3px_3px_0_rgba(0,0,0,0.4)]">
-              Active Disciple
-            </div>
-          )}
+        {/* Portrait + token # side by side */}
+        <div className="flex items-center gap-5">
+          <div className="relative">
+            <div className="absolute inset-0 scale-110 bg-[var(--pixel-emerald)] opacity-10 blur-xl" />
+            <PixelFrame className="pixel-panel-emerald p-2" round={2}>
+              <PanelCorners />
+              <Image
+                src={ORACLE_ASSETS.characters.discipleCardPortrait}
+                alt="Disciple portrait"
+                width={100}
+                height={100}
+                className="pixelated h-24 w-24"
+              />
+            </PixelFrame>
+          </div>
+          <div className="text-left">
+            <p className="text-lg uppercase tracking-[0.18em] text-[var(--pixel-border)]">Disciple</p>
+            <p className="text-6xl leading-none text-[var(--pixel-border)] drop-shadow-[0_0_16px_rgba(200,168,75,0.5)]">
+              #{idPadded}
+            </p>
+            {disciple?.active && (
+              <p className="mt-1 text-xl uppercase text-[var(--pixel-emerald)]">● Active</p>
+            )}
+          </div>
         </div>
 
         {/* Name */}
-        <div className="mt-2">
-          <p className="text-sm uppercase tracking-[0.22em] text-[var(--pixel-border)]">
-            Soulbound Identity
-          </p>
-          <p className="mt-1 text-4xl uppercase leading-tight text-[var(--pixel-parchment)] drop-shadow-[0_0_12px_rgba(240,217,160,0.25)]">
+        <div>
+          <p className="text-xs uppercase tracking-[0.24em] text-[var(--pixel-border)]">Soulbound Identity</p>
+          <p className="mt-1 text-3xl uppercase leading-tight text-[var(--pixel-parchment)]">
             {name}
           </p>
         </div>
 
-        {/* Stats */}
-        <div className="grid w-full grid-cols-3 gap-2">
-          <StatBox label="Staked" value={`${staked} USDY`} />
-          <StatBox label="Karma" value={karma} />
-          <StatBox label="Since" value={date} />
-        </div>
-
         {/* Unique quote */}
-        <PixelFrame className="pixel-panel-soft w-full px-4 py-4" round={1}>
-          <p className="text-xl leading-snug text-[var(--pixel-muted)]">
-            &ldquo;{quote}&rdquo;
-          </p>
-        </PixelFrame>
+        <p className="text-xl leading-snug text-[var(--pixel-muted)]">
+          &ldquo;{quote}&rdquo;
+        </p>
 
-        {/* Share buttons */}
+        {/* Stats — single line */}
+        <p className="text-xl text-[var(--pixel-muted)]">
+          <span className="text-[var(--pixel-parchment)]">{staked} USDY</span>
+          <span className="mx-2 text-[var(--pixel-border)]">·</span>
+          <span className="text-[var(--pixel-parchment)]">{karma} karma</span>
+          <span className="mx-2 text-[var(--pixel-border)]">·</span>
+          <span>{date}</span>
+        </p>
+
+        {/* Buttons */}
         <div className="flex w-full gap-3">
           <a
             href={`https://twitter.com/intent/tweet?text=${tweetText}`}
             target="_blank"
             rel="noreferrer"
-            className="pixel-button pixel-button-emerald inline-flex min-h-12 flex-1 items-center justify-center whitespace-nowrap px-5 py-2 text-xl uppercase tracking-[0.12em]"
+            className="pixel-button pixel-button-emerald inline-flex min-h-11 flex-1 items-center justify-center whitespace-nowrap px-4 py-2 text-xl uppercase tracking-[0.1em]"
           >
             Share To X
           </a>
           <Link
             href="/temple"
-            className="pixel-button pixel-button-dark inline-flex min-h-12 flex-1 items-center justify-center whitespace-nowrap px-5 py-2 text-xl uppercase tracking-[0.12em]"
+            className="pixel-button pixel-button-dark inline-flex min-h-11 flex-1 items-center justify-center whitespace-nowrap px-4 py-2 text-xl uppercase tracking-[0.1em]"
           >
             Enter Temple
           </Link>
         </div>
 
-        {/* Footer links */}
-        <div className="flex gap-4 text-lg uppercase tracking-[0.14em] text-[var(--pixel-muted)]">
-          <Link href="/prophecies" className="hover:text-[var(--pixel-border)]">Prophecies</Link>
-          <span className="text-[var(--pixel-shadow)]">·</span>
-          <Link href="/leaderboard" className="hover:text-[var(--pixel-border)]">Leaderboard</Link>
-        </div>
-
-        <p className="text-sm uppercase tracking-[0.16em] text-[rgba(200,178,127,0.4)]">
-          Mantle Sepolia · Soulbound NFT · Non-Transferable
+        <p className="text-sm uppercase tracking-[0.14em] text-[rgba(200,178,127,0.35)]">
+          Mantle Sepolia · Soulbound NFT
         </p>
       </div>
     </main>
-  );
-}
-
-function StatBox({ label, value }: { label: string; value: string }) {
-  return (
-    <PixelFrame className="pixel-panel-soft px-3 py-3" round={1}>
-      <PanelCorners />
-      <p className="text-sm uppercase tracking-[0.14em] text-[var(--pixel-border)]">{label}</p>
-      <p className="mt-1 text-xl uppercase text-[var(--pixel-parchment)] break-words">{value}</p>
-    </PixelFrame>
   );
 }
