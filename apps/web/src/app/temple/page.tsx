@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ConnectKitButton } from "connectkit";
+import { ConnectButton } from "@/components/ConnectButton";
 import {
   useAccount,
   useReadContract,
@@ -245,7 +246,7 @@ export default function TemplePage() {
           </Link>
         </div>
         <PixelFrame className="pixel-panel-soft px-3 py-2" round={1}>
-          <ConnectKitButton />
+          <ConnectButton />
         </PixelFrame>
       </header>
 
@@ -422,9 +423,9 @@ function DiscipleCard({
             className="pixelated h-30 w-30"
           />
         </div>
-        <h2 className="mt-2 text-lg uppercase text-[var(--pixel-parchment)] sm:text-xl">
+        <p className="mt-2 text-3xl uppercase text-[var(--pixel-parchment)]">
           {generateDiscipleName(disciple.disciple)}
-        </h2>
+        </p>
         <p className="mt-2 text-2xl text-[rgba(240,217,160,0.82)]">
           Soulbound to the chain. Exit anytime to reclaim your USDY.
         </p>

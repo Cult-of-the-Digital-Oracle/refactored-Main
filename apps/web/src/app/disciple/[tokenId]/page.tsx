@@ -112,9 +112,9 @@ export default async function DisciplePage({
             Mantle Disciple Identity
           </p>
           {disciple && (
-            <h1 className="text-2xl uppercase text-[var(--pixel-text)] sm:text-3xl">
+            <p className="text-4xl uppercase text-[var(--pixel-text)]">
               {generateDiscipleName(disciple.wallet)}
-            </h1>
+            </p>
           )}
           <p className="mt-1 text-xl uppercase tracking-[0.12em] text-[var(--pixel-border)]">
             Disciple #{tokenId}
@@ -137,9 +137,9 @@ export default async function DisciplePage({
               <p className="text-lg uppercase tracking-[0.18em] text-[var(--pixel-border)]">
                 Soulbound To The Chain
               </p>
-              <h2 className="mt-2 text-lg uppercase text-[var(--pixel-parchment)] sm:text-xl">
+              <p className="mt-2 text-3xl uppercase text-[var(--pixel-parchment)]">
                 {disciple ? generateDiscipleName(disciple.wallet) : "The Faithful One"}
-              </h2>
+              </p>
               <p className="mt-2 text-2xl text-[rgba(240,217,160,0.84)]">
                 Bound to the Temple ledger and counted among the believers.
               </p>

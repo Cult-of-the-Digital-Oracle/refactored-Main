@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useMemo } from "react";
 import Link from "next/link";
-import { ConnectKitButton } from "connectkit";
+import { ConnectButton } from "@/components/ConnectButton";
 import { useReadContract, useReadContracts } from "wagmi";
 import { formatUnits } from "viem";
 import { CONTRACTS, ORACLE_MESSAGE_ABI, TEMPLE_VAULT_ABI } from "@/lib/contracts";
@@ -176,7 +176,7 @@ export default function PropheciesPage() {
           </Link>
         </div>
         <PixelFrame className="pixel-panel-soft px-3 py-2" round={1}>
-          <ConnectKitButton />
+          <ConnectButton />
         </PixelFrame>
       </header>
 
@@ -311,7 +311,7 @@ function ProphecyCard({ entry }: { entry: ProphecyEntry }) {
         )}
       </div>
 
-      <p className={`mt-5 text-3xl leading-relaxed sm:text-4xl ${theme.text}`}>
+      <p className={`mt-4 text-xl leading-snug ${theme.text}`}>
         &ldquo;{entry.text}&rdquo;
       </p>
 

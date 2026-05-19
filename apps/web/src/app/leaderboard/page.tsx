@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ConnectKitButton } from "connectkit";
+import { ConnectButton } from "@/components/ConnectButton";
 import { useMemo } from "react";
 import { useReadContract, useReadContracts } from "wagmi";
 import { formatUnits } from "viem";
@@ -125,7 +125,7 @@ export default function LeaderboardPage() {
           Back To Oracle
         </Link>
         <PixelFrame className="pixel-panel-soft px-3 py-2" round={1}>
-          <ConnectKitButton />
+          <ConnectButton />
         </PixelFrame>
       </header>
 
@@ -243,7 +243,7 @@ function LeaderboardRow({ disciple, rank }: { disciple: RankedDisciple; rank: nu
         <div>
           <div className="flex flex-wrap items-center gap-3">
             <div>
-              <p className="text-xl uppercase text-[var(--pixel-parchment)]">
+              <p className="text-2xl uppercase text-[var(--pixel-parchment)]">
                 {generateDiscipleName(disciple.wallet)}
               </p>
               <p className="text-lg text-[var(--pixel-border)]">
