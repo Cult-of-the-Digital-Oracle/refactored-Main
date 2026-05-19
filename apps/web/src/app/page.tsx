@@ -3,6 +3,7 @@ import { ConnectButton } from "@/components/ConnectButton";
 import { TodaysProphecy } from "@/components/TodaysProphecy";
 import { AmbientRunes } from "@/components/AmbientRunes";
 import { OracleButton } from "@/components/OracleButton";
+import { PanelCorners } from "@/components/PanelCorners";
 import PixelFrame from "@/components/PixelFrame";
 import { ORACLE_ASSETS } from "@/lib/oracleAssets";
 
@@ -98,10 +99,11 @@ export default function Home() {
 
 function Step({ marker, title, body }: { marker: string; title: string; body: string }) {
   return (
-    <div className="border-l-2 border-[var(--pixel-border)] pl-3 py-1">
+    <PixelFrame className="pixel-panel overflow-hidden px-5 py-4" round={2}>
+      <PanelCorners />
       <p className="text-sm text-[var(--pixel-border)]">{marker}</p>
-      <p className="text-2xl uppercase text-[var(--pixel-parchment)]">{title}</p>
+      <p className="mt-1 text-2xl uppercase text-[var(--pixel-parchment)]">{title}</p>
       <p className="mt-1 text-lg leading-snug text-[var(--pixel-muted)]">{body}</p>
-    </div>
+    </PixelFrame>
   );
 }
