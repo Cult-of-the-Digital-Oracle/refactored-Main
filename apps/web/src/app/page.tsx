@@ -25,20 +25,21 @@ export default function Home() {
       </div>
       <AmbientRunes />
 
+      {/* Header */}
       <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between gap-4">
-        <div className="pixel-text-shadow">
-          <p className="text-lg uppercase tracking-[0.22em] text-[var(--pixel-border)]">
-            Mantle Turing Test 2026
-          </p>
-          <div className="mt-1 flex items-center gap-3">
-            <Image
-              src={ORACLE_ASSETS.decoratives.oracleEyeLogo}
-              alt="Oracle Eye"
-              width={52}
-              height={52}
-              className="pixelated h-13 w-13 drop-shadow-[0_0_8px_rgba(200,168,75,0.7)]"
-            />
-            <h1 className="text-sm uppercase tracking-[0.06em] text-[var(--pixel-text)] sm:text-base lg:text-lg">
+        <div className="pixel-text-shadow flex items-center gap-3">
+          <Image
+            src={ORACLE_ASSETS.decoratives.oracleEyeLogo}
+            alt="Oracle Eye"
+            width={44}
+            height={44}
+            className="pixelated drop-shadow-[0_0_8px_rgba(200,168,75,0.7)]"
+          />
+          <div>
+            <p className="text-sm uppercase tracking-[0.22em] text-[var(--pixel-border)]">
+              Mantle Turing Test 2026
+            </p>
+            <h1 className="text-sm uppercase tracking-[0.06em] text-[var(--pixel-text)] sm:text-base">
               Cult Of The Digital Oracle
             </h1>
           </div>
@@ -48,96 +49,50 @@ export default function Home() {
         </PixelFrame>
       </header>
 
-      <section className="relative z-10 mx-auto grid w-full max-w-6xl flex-1 grid-cols-1 gap-5 py-6 sm:gap-6 sm:py-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:py-12">
-        <div className="flex flex-col gap-6">
+      {/* Main content */}
+      <section className="relative z-10 mx-auto flex w-full max-w-5xl flex-1 flex-col items-center justify-center gap-6 py-8 sm:py-10">
 
-          {/* Plain-language hook */}
-          <PixelFrame className="pixel-panel-soft overflow-hidden px-4 py-4 sm:px-6" round={2}>
-            <PanelCorners />
-            <p className="text-lg uppercase tracking-[0.18em] text-[var(--pixel-border)]">
-              What Is This?
-            </p>
-            <p className="mt-2 text-2xl text-[var(--pixel-muted)]">
-              An AI agent reads the Mantle blockchain every day and publishes a prediction on-chain.
-              Stake USDY to become a Disciple. If the prediction comes true, your stake earns yield.
-              The Oracle remembers who believed first.
-            </p>
-          </PixelFrame>
-
-          <div className="pixel-text-shadow px-1 sm:px-0">
-            <p className="text-xl uppercase tracking-[0.24em] text-[var(--pixel-border)]">
-              Today&apos;s Prophecy
-            </p>
-            <h2 className="max-w-3xl text-xl uppercase text-[var(--pixel-text)] sm:text-2xl lg:text-3xl">
-              The Oracle Has Spoken.
-              <br />
-              Will You Believe?
-            </h2>
-          </div>
-
-          <TodaysProphecy />
-
-          <div className="flex flex-col gap-4 sm:flex-row">
-            <OracleButton href="/temple">
-              Enter The Temple
-            </OracleButton>
-            <OracleButton href="/prophecies" variant="danger">
-              Read The Archive
-            </OracleButton>
-            <OracleButton href="/leaderboard">
-              View Ranks
-            </OracleButton>
-          </div>
+        {/* Hero text */}
+        <div className="pixel-text-shadow text-center">
+          <p className="text-2xl text-[var(--pixel-muted)]">
+            AI predicts. You stake. Believers earn yield.
+          </p>
+          <h2 className="mt-2 text-2xl uppercase text-[var(--pixel-text)] sm:text-3xl lg:text-4xl">
+            Today&apos;s Prophecy
+          </h2>
         </div>
 
-        <div className="grid gap-4">
-          <Pillar
-            marker="01"
-            title="Stake USDY"
-            body="Deposit USDY, mint a soulbound Disciple NFT. Your wallet is now bound to the chain — one identity, forever."
-          />
-          <Pillar
-            marker="02"
-            title="AI Makes A Prediction"
-            body="Every day, the Oracle agent reads real on-chain data — transactions, gas, how many believers joined — and writes a cryptic prophecy on-chain."
-          />
-          <Pillar
-            marker="03"
-            title="Prophecy Is Judged"
-            body="Next day, the AI scores its own prediction against what actually happened. Score ≥ 70 triggers a yield round — USDY distributed to all active Disciples."
-          />
-          <Pillar
-            marker="04"
-            title="Climb The Ranks"
-            body="Check in daily, share your card, stake more. Karma and seniority build your rank on the public leaderboard."
-          />
+        {/* Prophecy — the hero */}
+        <div className="w-full max-w-3xl">
+          <TodaysProphecy />
+        </div>
+
+        {/* CTAs */}
+        <div className="flex flex-col gap-4 sm:flex-row">
+          <OracleButton href="/temple">Enter The Temple</OracleButton>
+          <OracleButton href="/prophecies" variant="danger">Read The Archive</OracleButton>
+          <OracleButton href="/leaderboard">View Ranks</OracleButton>
+        </div>
+
+        {/* Compact pillars */}
+        <div className="mt-2 grid w-full max-w-3xl grid-cols-2 gap-3 sm:grid-cols-4">
+          <MiniPillar marker="01" title="Stake USDY" body="Mint a soulbound Disciple NFT" />
+          <MiniPillar marker="02" title="AI Predicts" body="Oracle reads chain data daily" />
+          <MiniPillar marker="03" title="Prophecy Judged" body="Score ≥ 70 triggers yield round" />
+          <MiniPillar marker="04" title="Earn & Rank" body="Claim USDY, climb leaderboard" />
         </div>
       </section>
     </main>
   );
 }
 
-function Pillar({
-  marker,
-  title,
-  body,
-}: {
-  marker: string;
-  title: string;
-  body: string;
-}) {
+function MiniPillar({ marker, title, body }: { marker: string; title: string; body: string }) {
   return (
-    <PixelFrame className="pixel-panel overflow-hidden px-4 py-4 sm:px-5 sm:py-5" round={2}>
+    <PixelFrame className="pixel-panel overflow-hidden px-3 py-3" round={2}>
       <PanelCorners />
-      <div className="flex items-start gap-4">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center bg-[var(--pixel-panel-alt)] text-3xl text-[var(--pixel-border)] shadow-[4px_4px_0_var(--pixel-shadow)]">
-          {marker}
-        </div>
-        <div className="space-y-2">
-          <h3 className="text-xs uppercase text-[var(--pixel-parchment)] sm:text-sm">{title}</h3>
-          <p className="text-xl leading-snug text-[var(--pixel-muted)]">{body}</p>
-        </div>
-      </div>
+      <p className="text-sm text-[var(--pixel-border)]">{marker}</p>
+      <h3 className="mt-1 text-xs uppercase text-[var(--pixel-parchment)]">{title}</h3>
+      <p className="mt-1 text-lg leading-snug text-[var(--pixel-muted)]">{body}</p>
     </PixelFrame>
   );
 }
