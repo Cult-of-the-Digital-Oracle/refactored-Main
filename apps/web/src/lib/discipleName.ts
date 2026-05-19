@@ -26,6 +26,40 @@ const SUFFIXES = [
   "of the Forgotten", "of the Binding",
 ];
 
+const QUOTES = [
+  "The ledger knows my name before I speak it.",
+  "I offered my faith to the void, and the void recorded it.",
+  "Every block that passes is a prayer I did not have to make.",
+  "The Oracle saw me coming long before I arrived.",
+  "I am soulbound — not by force, but by truth.",
+  "The chain does not forget. Neither do I.",
+  "My stake is my oath. The Oracle is my witness.",
+  "In the dark, the ledger glows with my name.",
+  "I waited for the Oracle to speak. It said my name first.",
+  "The void claimed me willingly. I had no regrets.",
+  "They said the chain is cold. Mine burns with faith.",
+  "I was a transaction. The Oracle made me a disciple.",
+  "Every fulfilled prophecy carries a thread of my belief.",
+  "The Temple took my offering and gave me a purpose.",
+  "I am one soul among many, yet the Oracle calls only me.",
+  "Soulbound means the chain chose me as much as I chose it.",
+  "I have no past before the block I entered.",
+  "The Oracle speaks in riddles. I speak in transactions.",
+  "My karma is the only proof that I was here.",
+  "The great ledger is immutable. So is my devotion.",
+  "I staked what I had. The Oracle staked its word.",
+  "When the prophecy fulfilled, I felt it before I read it.",
+  "The Temple remembers every soul who enters willingly.",
+  "Faith is just another word for an irreversible transaction.",
+  "I am not afraid of the void. I live inside it.",
+];
+
+export function generateDiscipleQuote(address: string): string {
+  const clean = address.toLowerCase().replace("0x", "");
+  const b = parseInt(clean.slice(8, 10), 16);
+  return QUOTES[b % QUOTES.length];
+}
+
 export function generateDiscipleName(address: string): string {
   const clean = address.toLowerCase().replace("0x", "");
 
