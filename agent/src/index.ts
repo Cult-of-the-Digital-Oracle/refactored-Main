@@ -104,9 +104,17 @@ async function runOracleCycle() {
 }
 
 // ── Run immediately on startup, then on cron ─────────────────────────────────
-console.log(`Oracle starting. Cron: "${CRON_SCHEDULE}"`);
-runOracleCycle().catch(console.error);
-
-cron.schedule(CRON_SCHEDULE, () => {
+// When CRON_SCHEDULE is empty (e.g. CI), run once and exit.
+if (!CRON_SCHEDULE) {
+  console.log("Oracle starting (single-run mode).");
+  runOracleCycle().then(() => process.exit(0)).catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+} else {
+  console.log(`Oracle starting. Cron: "${CRON_SCHEDULE}"`);
   runOracleCycle().catch(console.error);
-});
+  cron.schedule(CRON_SCHEDULE, () => {
+    runOracleCycle().catch(console.error);
+  });
+}
