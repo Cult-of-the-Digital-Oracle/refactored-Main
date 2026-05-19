@@ -45,43 +45,76 @@ export default function Home() {
       </header>
 
       {/* Hero */}
-      <section className="relative z-10 mx-auto flex w-full max-w-lg flex-1 flex-col items-center justify-center gap-5 py-8 text-center">
+      <section className="relative z-10 mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center gap-5 py-8">
+        <div className="flex w-full flex-col items-center gap-5 text-center sm:flex-row sm:items-start sm:gap-8 sm:text-left">
 
-        {/* Oracle eye — visual anchor */}
-        <Image
-          src={ORACLE_ASSETS.decoratives.oracleEyeLogo}
-          alt=""
-          width={64}
-          height={64}
-          className="pixelated drop-shadow-[0_0_20px_rgba(200,168,75,0.55)] opacity-90"
-        />
+          {/* Oracle character */}
+          <div className="relative shrink-0">
+            <div className="absolute inset-0 scale-110 bg-[var(--pixel-border)] opacity-8 blur-3xl" />
+            <Image
+              src={ORACLE_ASSETS.characters.oracle}
+              alt="The Oracle"
+              width={160}
+              height={160}
+              priority
+              className="pixelated relative h-28 w-28 drop-shadow-[0_0_24px_rgba(200,168,75,0.45)] sm:h-40 sm:w-40"
+            />
+          </div>
 
-        {/* Eyebrow */}
-        <p className="text-sm uppercase tracking-[0.28em] text-[var(--pixel-muted)]">
-          The Oracle Speaks Daily · On-Chain · Immutable
-        </p>
-
-        {/* Prophecy — the centerpiece */}
-        <div className="w-full">
-          <TodaysProphecy />
-        </div>
-
-        {/* CTA */}
-        <div className="flex flex-col items-center gap-2">
-          <OracleButton href="/temple">Enter The Temple</OracleButton>
-          <p className="text-lg text-[var(--pixel-muted)]">
-            Stake USDY · Mint Disciple NFT · Earn Yield
-          </p>
+          {/* Content: eyebrow + prophecy + CTA */}
+          <div className="flex w-full flex-col items-center gap-4 sm:items-start">
+            <div className="flex items-center gap-2">
+              <Image
+                src={ORACLE_ASSETS.decoratives.oracleEyeLogo}
+                alt=""
+                width={18}
+                height={18}
+                className="pixelated opacity-60"
+              />
+              <p className="text-sm uppercase tracking-[0.28em] text-[var(--pixel-muted)]">
+                The Oracle Speaks Daily · On-Chain · Immutable
+              </p>
+            </div>
+            <div className="w-full">
+              <TodaysProphecy />
+            </div>
+            <div className="flex flex-col items-center gap-2 sm:items-start">
+              <OracleButton href="/temple">Enter The Temple</OracleButton>
+              <p className="text-lg text-[var(--pixel-muted)]">
+                Stake USDY · Mint Disciple NFT · Earn Yield
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Below fold — how it works */}
       <section className="relative z-10 mx-auto w-full max-w-3xl pb-8">
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <Step marker="01" title="Stake" body="Deposit USDY, mint soulbound Disciple NFT" />
-          <Step marker="02" title="Oracle Speaks" body="AI reads chain data, posts prophecy on-chain" />
-          <Step marker="03" title="Truth Is Judged" body="AI scores itself. Score ≥70 triggers yield" />
-          <Step marker="04" title="Earn & Rank" body="Claim USDY yield, climb the leaderboard" />
+          <Step
+            marker="01"
+            title="Stake"
+            body="Deposit USDY, mint soulbound Disciple NFT"
+            icon={ORACLE_ASSETS.characters.disciple}
+          />
+          <Step
+            marker="02"
+            title="Oracle Speaks"
+            body="AI reads chain data, posts prophecy on-chain"
+            icon={ORACLE_ASSETS.ui.prophecyIcon}
+          />
+          <Step
+            marker="03"
+            title="Truth Is Judged"
+            body="AI scores itself. Score ≥70 triggers yield"
+            icon={ORACLE_ASSETS.ui.hourglass}
+          />
+          <Step
+            marker="04"
+            title="Earn & Rank"
+            body="Claim USDY yield, climb the leaderboard"
+            icon={ORACLE_ASSETS.ui.starKarmaIcon}
+          />
         </div>
 
         <div className="mt-3 flex justify-center gap-3">
@@ -97,10 +130,11 @@ export default function Home() {
   );
 }
 
-function Step({ marker, title, body }: { marker: string; title: string; body: string }) {
+function Step({ marker, title, body, icon }: { marker: string; title: string; body: string; icon: string }) {
   return (
     <PixelFrame className="pixel-panel overflow-hidden px-5 py-4" round={2}>
       <PanelCorners />
+      <Image src={icon} alt="" width={40} height={40} className="pixelated mb-2 h-10 w-10" />
       <p className="text-sm text-[var(--pixel-border)]">{marker}</p>
       <p className="mt-1 text-2xl uppercase text-[var(--pixel-parchment)]">{title}</p>
       <p className="mt-1 text-lg leading-snug text-[var(--pixel-muted)]">{body}</p>
