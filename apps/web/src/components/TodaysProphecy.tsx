@@ -46,11 +46,11 @@ export function TodaysProphecy() {
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Image
-            src={ORACLE_ASSETS.ui.chainLink}
+            src={ORACLE_ASSETS.ui.prophecyIcon}
             alt="Prophecy"
-            width={28}
-            height={28}
-            className="pixelated h-7 w-7"
+            width={36}
+            height={36}
+            className="pixelated h-9 w-9"
           />
           <p className="text-lg uppercase tracking-[0.22em] text-[var(--pixel-border)]">
             Today&apos;s Prophecy
