@@ -11,6 +11,7 @@ import { PanelCorners } from "@/components/PanelCorners";
 import PixelFrame from "@/components/PixelFrame";
 import { CONTRACTS, TEMPLE_VAULT_ABI } from "@/lib/contracts";
 import { ORACLE_ASSETS } from "@/lib/oracleAssets";
+import { generateDiscipleName } from "@/lib/discipleName";
 
 type DiscipleTuple = readonly [`0x${string}`, bigint, bigint, bigint, bigint, boolean];
 
@@ -241,9 +242,14 @@ function LeaderboardRow({ disciple, rank }: { disciple: RankedDisciple; rank: nu
 
         <div>
           <div className="flex flex-wrap items-center gap-3">
-            <p className="text-4xl uppercase text-[var(--pixel-parchment)]">
-              Disciple #{disciple.tokenId.toString()}
-            </p>
+            <div>
+              <p className="text-xl uppercase text-[var(--pixel-parchment)]">
+                {generateDiscipleName(disciple.wallet)}
+              </p>
+              <p className="text-lg text-[var(--pixel-border)]">
+                Disciple #{disciple.tokenId.toString()}
+              </p>
+            </div>
             <span
               className={`px-2 py-1 text-lg uppercase tracking-[0.12em] ${
                 disciple.active

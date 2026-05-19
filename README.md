@@ -222,6 +222,7 @@ CRON_SCHEDULE=0 0 * * *
 - [x] Pixel-art frontend — Press Start 2P headings, VT323 body, custom asset pack
 - [x] ConnectKit wallet modal — MetaMask, WalletConnect QR, themed to match UI
 - [x] Temple-aware oracle — agent reads own disciple count, total faith, and 24h joins/exits when generating and scoring prophecies
+- [x] Oracle-given disciple names — deterministic mystical names generated from wallet address (e.g. "The Ashen Keeper", "Void Warden of the Chain") shown on leaderboard, disciple card, and temple
 - [x] Vercel deployment — live at https://web-red-nine-58.vercel.app
 
 ### What makes it interesting

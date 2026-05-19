@@ -24,6 +24,7 @@ import { AmbientRunes } from "@/components/AmbientRunes";
 import { OracleButton } from "@/components/OracleButton";
 import { PanelCorners } from "@/components/PanelCorners";
 import { ORACLE_ASSETS } from "@/lib/oracleAssets";
+import { generateDiscipleName } from "@/lib/discipleName";
 
 const FAUCET_ABI = [
   {
@@ -421,7 +422,9 @@ function DiscipleCard({
             className="pixelated h-30 w-30"
           />
         </div>
-        <h2 className="mt-2 text-lg uppercase text-[var(--pixel-parchment)] sm:text-xl">The Faithful One</h2>
+        <h2 className="mt-2 text-lg uppercase text-[var(--pixel-parchment)] sm:text-xl">
+          {generateDiscipleName(disciple.disciple)}
+        </h2>
         <p className="mt-2 text-2xl text-[rgba(240,217,160,0.82)]">
           Soulbound to the chain. Exit anytime to reclaim your USDY.
         </p>
@@ -464,7 +467,7 @@ function DiscipleCard({
         </a>
         <a
           href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-            `I became Disciple #${tokenId.toString()} in the Cult of the Digital Oracle on Mantle.`
+            `The Oracle named me "${generateDiscipleName(disciple.disciple)}" — Disciple #${tokenId.toString()} in the Cult of the Digital Oracle on Mantle.`
           )}`}
           target="_blank"
           rel="noreferrer"

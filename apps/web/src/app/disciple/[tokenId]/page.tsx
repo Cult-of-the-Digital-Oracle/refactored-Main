@@ -4,6 +4,7 @@ import Link from "next/link";
 import { createPublicClient, formatUnits, http } from "viem";
 import PixelFrame from "@/components/PixelFrame";
 import { ORACLE_ASSETS } from "@/lib/oracleAssets";
+import { generateDiscipleName } from "@/lib/discipleName";
 
 const VAULT_ABI = [
   {
@@ -33,7 +34,7 @@ async function fetchDisciple(tokenId: string) {
       functionName: "disciples",
       args: [BigInt(tokenId)],
     });
-    const [, stakeAmount, joinedAt, , karma, active] = raw as [
+    const [wallet, stakeAmount, joinedAt, , karma, active] = raw as [
       `0x${string}`,
       bigint,
       bigint,
@@ -41,7 +42,7 @@ async function fetchDisciple(tokenId: string) {
       bigint,
       boolean,
     ];
-    return { stakeAmount, joinedAt, karma, active };
+    return { wallet, stakeAmount, joinedAt, karma, active };
   } catch {
     return null;
   }
@@ -110,9 +111,14 @@ export default async function DisciplePage({
           <p className="text-xl uppercase tracking-[0.22em] text-[var(--pixel-border)]">
             Mantle Disciple Identity
           </p>
-          <h1 className="text-2xl uppercase text-[var(--pixel-text)] sm:text-3xl">
+          {disciple && (
+            <h1 className="text-2xl uppercase text-[var(--pixel-text)] sm:text-3xl">
+              {generateDiscipleName(disciple.wallet)}
+            </h1>
+          )}
+          <p className="mt-1 text-xl uppercase tracking-[0.12em] text-[var(--pixel-border)]">
             Disciple #{tokenId}
-          </h1>
+          </p>
         </div>
 
         <PixelFrame className="pixel-panel-emerald w-full px-6 py-6 sm:px-8" round={2}>
@@ -132,7 +138,7 @@ export default async function DisciplePage({
                 Soulbound To The Chain
               </p>
               <h2 className="mt-2 text-lg uppercase text-[var(--pixel-parchment)] sm:text-xl">
-                The Faithful One
+                {disciple ? generateDiscipleName(disciple.wallet) : "The Faithful One"}
               </h2>
               <p className="mt-2 text-2xl text-[rgba(240,217,160,0.84)]">
                 Bound to the Temple ledger and counted among the believers.
