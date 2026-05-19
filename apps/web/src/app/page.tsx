@@ -3,6 +3,7 @@ import { ConnectButton } from "@/components/ConnectButton";
 import { TodaysProphecy } from "@/components/TodaysProphecy";
 import { AmbientRunes } from "@/components/AmbientRunes";
 import { OracleButton } from "@/components/OracleButton";
+import { ProphecyCountdown } from "@/components/ProphecyCountdown";
 import { PanelCorners } from "@/components/PanelCorners";
 import PixelFrame from "@/components/PixelFrame";
 import { ORACLE_ASSETS } from "@/lib/oracleAssets";
@@ -65,6 +66,9 @@ export default function Home() {
         <div className="w-full">
           <TodaysProphecy />
         </div>
+
+        {/* Countdown */}
+        <ProphecyCountdown />
 
         {/* CTA */}
         <div className="flex flex-col items-center gap-2">
