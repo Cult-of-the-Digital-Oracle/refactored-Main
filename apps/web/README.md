@@ -1,22 +1,26 @@
 # Cult of the Digital Oracle — Frontend
 
-Next.js 16 frontend for the [Cult of the Digital Oracle](https://github.com) hackathon DApp on Mantle.
+**Live:** https://web-red-nine-58.vercel.app
+
+Next.js 16 frontend for the Cult of the Digital Oracle hackathon DApp on Mantle.
 
 ## Stack
 
 - **Next.js 16** (App Router, Turbopack)
 - **wagmi v2 + viem** — contract reads/writes
-- **RainbowKit** — wallet connection
+- **ConnectKit** — wallet connection modal (themed to match pixel UI)
 - **Tailwind CSS v4**
+- **Press Start 2P + VT323** — pixel fonts via Google Fonts
 
 ## Pages
 
 | Route | Description |
 |-------|-------------|
 | `/` | Landing page — live prophecy from chain |
-| `/temple` | Stake USDY → mint Disciple NFT → claim USDY yield |
-| `/prophecies` | Archive of all past prophecies + fulfillment scores |
-| `/disciple/[tokenId]` | Shareable Disciple Card with OG image |
+| `/temple` | Faucet → approve USDY → stake → Disciple card → claim yield |
+| `/prophecies` | Archive of all past prophecies with fulfillment scores |
+| `/leaderboard` | Disciples ranked by faith, karma, and seniority |
+| `/disciple/[tokenId]` | Shareable Disciple card with OG image |
 
 ## Setup
 
@@ -29,11 +33,11 @@ npm run dev
 
 ## Environment Variables
 
-```
+```env
 NEXT_PUBLIC_WC_PROJECT_ID=
-NEXT_PUBLIC_ORACLE_MESSAGE_ADDRESS=0x163fd8daa2df8Ef5fb50EC18F734D4549824e639
-NEXT_PUBLIC_TEMPLE_VAULT_ADDRESS=0xFeC183003ba31EE7c298A8ffb321EF4B5FB88746
-NEXT_PUBLIC_BLESSING_DISTRIBUTOR_ADDRESS=0x35A0d20c9ad2867ab7E01CaF59420d64EA11E6Be
+NEXT_PUBLIC_ORACLE_MESSAGE_ADDRESS=0xA41cA74250229F212367AB7f7b71552d07426Da3
+NEXT_PUBLIC_TEMPLE_VAULT_ADDRESS=0x7679f4252118FdAa5351CbcfA484965761a98CC4
+NEXT_PUBLIC_BLESSING_DISTRIBUTOR_ADDRESS=0x60Bda6640129221d9819E6fbeF1406c4e105f789
 NEXT_PUBLIC_USDY_ADDRESS=0x7ADbf2a8b9348cC1F6Ee88Db12F9415Ee55b9500
 ```
 
