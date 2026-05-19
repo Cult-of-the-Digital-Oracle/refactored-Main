@@ -50,35 +50,28 @@ export default function Home() {
 
       <section className="relative z-10 mx-auto grid w-full max-w-6xl flex-1 grid-cols-1 gap-5 py-6 sm:gap-6 sm:py-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:py-12">
         <div className="flex flex-col gap-6">
+
+          {/* Plain-language hook */}
           <PixelFrame className="pixel-panel-soft overflow-hidden px-4 py-4 sm:px-6" round={2}>
             <PanelCorners />
-            <div className="flex items-center gap-3">
-              <Image
-                src={ORACLE_ASSETS.decoratives.oracleEyeLogo}
-                alt="Oracle Eye"
-                width={52}
-                height={52}
-                className="pixelated h-13 w-13 shrink-0 drop-shadow-[0_0_10px_rgba(200,168,75,0.6)]"
-              />
-              <div>
-                <p className="text-lg uppercase tracking-[0.18em] text-[var(--pixel-border)]">
-                  Daily Chain Divination
-                </p>
-                <p className="text-xl text-[var(--pixel-muted)]">
-                  Stake USDY. Become a Disciple. Claim blessings when prophecy manifests.
-                </p>
-              </div>
-            </div>
+            <p className="text-lg uppercase tracking-[0.18em] text-[var(--pixel-border)]">
+              What Is This?
+            </p>
+            <p className="mt-2 text-2xl text-[var(--pixel-muted)]">
+              An AI agent reads the Mantle blockchain every day and publishes a prediction on-chain.
+              Stake USDY to become a Disciple. If the prediction comes true, your stake earns yield.
+              The Oracle remembers who believed first.
+            </p>
           </PixelFrame>
 
           <div className="pixel-text-shadow px-1 sm:px-0">
             <p className="text-xl uppercase tracking-[0.24em] text-[var(--pixel-border)]">
-              The Chain Speaks In Symbols
+              Today&apos;s Prophecy
             </p>
             <h2 className="max-w-3xl text-xl uppercase text-[var(--pixel-text)] sm:text-2xl lg:text-3xl">
-              Enter The Temple.
+              The Oracle Has Spoken.
               <br />
-              Hear The Machine.
+              Will You Believe?
             </h2>
           </div>
 
@@ -101,22 +94,22 @@ export default function Home() {
           <Pillar
             marker="01"
             title="Stake USDY"
-            body="Deposit Mantle's RWA stablecoin, mint a soulbound Disciple identity, and join the ledger of believers."
+            body="Deposit USDY, mint a soulbound Disciple NFT. Your wallet is now bound to the chain — one identity, forever."
           />
           <Pillar
             marker="02"
-            title="Receive Prophecy"
-            body="The oracle agent reads chain conditions every day and commits its cryptic reading on-chain forever."
+            title="AI Makes A Prediction"
+            body="Every day, the Oracle agent reads real on-chain data — transactions, gas, how many believers joined — and writes a cryptic prophecy on-chain."
           />
           <Pillar
             marker="03"
-            title="Claim Blessings"
-            body="When yesterday's words align with what happened, the blessing pool distributes yield back to the faithful."
+            title="Prophecy Is Judged"
+            body="Next day, the AI scores its own prediction against what actually happened. Score ≥ 70 triggers a yield round — USDY distributed to all active Disciples."
           />
           <Pillar
             marker="04"
             title="Climb The Ranks"
-            body="Public Disciple cards and leaderboard positions turn faith, karma, and stake into shareable status."
+            body="Check in daily, share your card, stake more. Karma and seniority build your rank on the public leaderboard."
           />
         </div>
       </section>
