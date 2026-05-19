@@ -69,7 +69,7 @@ export function TodaysProphecy() {
         </div>
       ) : hasText ? (
         <>
-          <p className="text-2xl leading-relaxed text-[var(--pixel-parchment)] sm:text-[2rem]">
+          <p className="text-xl leading-snug text-[var(--pixel-parchment)]">
             &ldquo;{prophecy!.text}&rdquo;
           </p>
           <p className="mt-4 border-t border-[rgba(200,168,75,0.2)] pt-3 text-sm uppercase tracking-[0.12em] text-[var(--pixel-muted)]">
@@ -78,7 +78,7 @@ export function TodaysProphecy() {
         </>
       ) : (
         <>
-          <p className="text-2xl leading-relaxed text-[var(--pixel-muted)] sm:text-[2rem]">
+          <p className="text-xl leading-snug text-[var(--pixel-muted)]">
             &ldquo;The Oracle has not yet spoken today. The chain awaits.&rdquo;
           </p>
           <p className="mt-4 border-t border-[rgba(200,168,75,0.16)] pt-3 text-sm uppercase tracking-[0.12em] text-[rgba(200,178,127,0.82)]">

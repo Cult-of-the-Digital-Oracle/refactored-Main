@@ -44,49 +44,51 @@ export default function Home() {
         </PixelFrame>
       </header>
 
-      {/* Hero — above fold */}
-      <section className="relative z-10 mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center gap-8 py-8 text-center">
+      {/* Hero */}
+      <section className="relative z-10 mx-auto flex w-full max-w-lg flex-1 flex-col items-center justify-center gap-5 py-8 text-center">
 
-        {/* Tagline */}
-        <div className="pixel-text-shadow space-y-2">
-          <p className="text-xl uppercase tracking-[0.2em] text-[var(--pixel-border)]">
-            Every Day. On-Chain. Immutable.
-          </p>
-          <h2 className="text-2xl uppercase text-[var(--pixel-text)] sm:text-3xl lg:text-4xl">
-            An AI Oracle Watches The Chain.
-            <br />
-            Stake To Become A Believer.
-          </h2>
-        </div>
+        {/* Oracle eye — visual anchor */}
+        <Image
+          src={ORACLE_ASSETS.decoratives.oracleEyeLogo}
+          alt=""
+          width={64}
+          height={64}
+          className="pixelated drop-shadow-[0_0_20px_rgba(200,168,75,0.55)] opacity-90"
+        />
+
+        {/* Eyebrow */}
+        <p className="text-sm uppercase tracking-[0.28em] text-[var(--pixel-muted)]">
+          The Oracle Speaks Daily · On-Chain · Immutable
+        </p>
 
         {/* Prophecy — the centerpiece */}
         <div className="w-full">
           <TodaysProphecy />
         </div>
 
-        {/* Single primary CTA */}
-        <div className="flex flex-col items-center gap-3">
+        {/* CTA */}
+        <div className="flex flex-col items-center gap-2">
           <OracleButton href="/temple">Enter The Temple</OracleButton>
-          <p className="text-xl text-[var(--pixel-muted)]">
-            Stake USDY → get a Disciple NFT → earn yield when prophecy fulfills
+          <p className="text-lg text-[var(--pixel-muted)]">
+            Stake USDY · Mint Disciple NFT · Earn Yield
           </p>
         </div>
       </section>
 
       {/* Below fold — how it works */}
-      <section className="relative z-10 mx-auto w-full max-w-4xl pb-8">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <section className="relative z-10 mx-auto w-full max-w-3xl pb-8">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           <Step marker="01" title="Stake" body="Deposit USDY, mint soulbound Disciple NFT" />
           <Step marker="02" title="Oracle Speaks" body="AI reads chain data, posts prophecy on-chain" />
           <Step marker="03" title="Truth Is Judged" body="AI scores itself. Score ≥70 triggers yield" />
           <Step marker="04" title="Earn & Rank" body="Claim USDY yield, climb the leaderboard" />
         </div>
 
-        <div className="mt-4 flex justify-center gap-4">
-          <a href="/prophecies" className="pixel-button pixel-button-dark inline-flex min-h-10 items-center px-4 py-2 text-lg uppercase tracking-[0.1em]">
+        <div className="mt-3 flex justify-center gap-3">
+          <a href="/prophecies" className="pixel-button pixel-button-dark inline-flex min-h-9 items-center px-4 py-2 text-lg uppercase tracking-[0.1em]">
             Prophecy Archive
           </a>
-          <a href="/leaderboard" className="pixel-button pixel-button-dark inline-flex min-h-10 items-center px-4 py-2 text-lg uppercase tracking-[0.1em]">
+          <a href="/leaderboard" className="pixel-button pixel-button-dark inline-flex min-h-9 items-center px-4 py-2 text-lg uppercase tracking-[0.1em]">
             Leaderboard
           </a>
         </div>
