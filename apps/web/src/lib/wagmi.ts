@@ -8,8 +8,8 @@ export const config = createConfig(
     walletConnectProjectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID ?? "demo-project-id",
     chains: [mantleSepoliaTestnet, mantle],
     transports: {
-      [mantleSepoliaTestnet.id]: http(),
-      [mantle.id]: http(),
+      [mantleSepoliaTestnet.id]: http("https://rpc.sepolia.mantle.xyz"),
+      [mantle.id]: http("https://rpc.mantle.xyz"),
     },
     ssr: true,
   })
