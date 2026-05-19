@@ -251,28 +251,42 @@ export default function TemplePage() {
       </header>
 
       <section className="relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-5 py-6 sm:gap-6 sm:py-8">
-        <div className="grid gap-5 sm:gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+        {/* Full-width compact header */}
+        <div className="pixel-text-shadow flex flex-wrap items-center gap-x-5 gap-y-2">
+          <Image
+            src={ORACLE_ASSETS.decoratives.oracleEyeLogo}
+            alt="Oracle Eye"
+            width={52}
+            height={52}
+            className="pixelated shrink-0"
+          />
+          <div>
+            <p className="text-xl uppercase tracking-[0.22em] text-[var(--pixel-border)]">
+              Faith Staking Vault
+            </p>
+            <h1 className="text-2xl uppercase text-[var(--pixel-text)] sm:text-3xl">
+              The Temple
+            </h1>
+          </div>
+          <p className="text-xl text-[var(--pixel-muted)] lg:ml-auto lg:max-w-xs lg:text-right">
+            Stake USDY · soulbound Disciple identity · earn yield when prophecy fulfills
+          </p>
+        </div>
+
+        <div className="grid gap-5 sm:gap-6 lg:grid-cols-[1fr_1.8fr]">
+          {/* Left sidebar */}
           <div className="flex flex-col gap-4">
-            <div className="pixel-text-shadow">
-              <p className="text-xl uppercase tracking-[0.22em] text-[var(--pixel-border)]">
-                Faith Staking Vault
-              </p>
-              <div className="mt-2 flex items-center gap-4">
-                <Image
-                  src={ORACLE_ASSETS.decoratives.oracleEyeLogo}
-                  alt="Oracle Eye"
-                  width={64}
-                  height={64}
-                  className="pixelated h-14 w-14 shrink-0"
-                />
-                <h1 className="text-2xl uppercase text-[var(--pixel-text)] sm:text-3xl lg:text-4xl">
-                  The Temple
-                </h1>
+            <PixelFrame className="pixel-panel overflow-hidden px-4 py-4 sm:px-5" round={2}>
+              <PanelCorners />
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-lg uppercase tracking-[0.18em] text-[var(--pixel-border)]">
+                  Total Faith
+                </span>
+                <span className="text-3xl uppercase text-[var(--pixel-parchment)]">
+                  {fmt(totalFaith)} USDY
+                </span>
               </div>
-              <p className="mt-3 max-w-2xl text-2xl text-[var(--pixel-muted)]">
-                Offer USDY to the ledger, receive a soulbound Disciple identity, and become eligible for blessings.
-              </p>
-            </div>
+            </PixelFrame>
 
             <PixelFrame className="pixel-panel-soft overflow-hidden px-4 py-4 sm:px-5 sm:py-5" round={2}>
               <PanelCorners />
@@ -287,19 +301,8 @@ export default function TemplePage() {
             </PixelFrame>
           </div>
 
+          {/* Right: main action */}
           <div className="flex flex-col gap-4">
-            <PixelFrame className="pixel-panel overflow-hidden px-4 py-4 sm:px-5" round={2}>
-              <PanelCorners />
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-lg uppercase tracking-[0.18em] text-[var(--pixel-border)]">
-                  Total Faith
-                </span>
-                <span className="text-4xl uppercase text-[var(--pixel-parchment)]">
-                  {fmt(totalFaith)} USDY
-                </span>
-              </div>
-            </PixelFrame>
-
             {!isConnected ? (
               <PixelFrame className="pixel-panel overflow-hidden px-5 py-7 text-center sm:px-6 sm:py-8" round={2}>
                 <PanelCorners />
@@ -457,12 +460,12 @@ function DiscipleCard({
         <ClaimPanel tokenId={tokenId} />
       </div>
 
-      <div className="mt-5 flex flex-col gap-4 sm:flex-row">
+      <div className="mt-5 flex flex-col gap-3 sm:flex-row">
         <a
           href={`/disciple/${tokenId.toString()}`}
           target="_blank"
           rel="noreferrer"
-          className="pixel-button pixel-button-dark inline-flex min-h-14 flex-1 items-center justify-center px-6 py-3 text-2xl uppercase tracking-[0.12em]"
+          className="pixel-button pixel-button-dark inline-flex min-h-12 flex-1 items-center justify-center whitespace-nowrap px-5 py-2 text-xl uppercase tracking-[0.12em]"
         >
           Share My Card
         </a>
@@ -473,7 +476,7 @@ function DiscipleCard({
           target="_blank"
           rel="noreferrer"
           onClick={onRecordShare}
-          className="pixel-button pixel-button-emerald inline-flex min-h-14 flex-1 items-center justify-center px-6 py-3 text-2xl uppercase tracking-[0.12em]"
+          className="pixel-button pixel-button-emerald inline-flex min-h-12 flex-1 items-center justify-center whitespace-nowrap px-5 py-2 text-xl uppercase tracking-[0.12em]"
         >
           Share To X
         </a>
