@@ -10,8 +10,8 @@ export const config = createConfig(
     transports: {
       [mantleSepoliaTestnet.id]: http("https://rpc.sepolia.mantle.xyz"),
       [mantle.id]: http("https://rpc.mantle.xyz"),
-      // Override ConnectKit's default eth.merkle.io (no CORS) with a public RPC
-      [mainnet.id]: http("https://eth.llamarpc.com"),
+      // Proxy through our own API route — avoids CORS on all public ETH mainnet RPCs
+      [mainnet.id]: http("/api/eth-rpc"),
     },
     ssr: true,
   })
