@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
 import { createPublicClient, formatUnits, http } from "viem";
+import { generateDiscipleName, generateDiscipleQuote } from "@/lib/discipleName";
 
 export const runtime = "edge";
 
@@ -38,6 +39,8 @@ export async function GET(
   let staked = "--";
   let karma = "0";
   let date = "--";
+  let discipleName = "The Faithful One";
+  let discipleQuote = "My soul is bound to the great ledger.";
 
   try {
     const client = createPublicClient({
@@ -51,7 +54,7 @@ export async function GET(
       args: [BigInt(tokenId)],
     });
 
-    const [, stakeAmount, joinedAt, , karmaVal] = raw as [
+    const [wallet, stakeAmount, joinedAt, , karmaVal] = raw as [
       `0x${string}`,
       bigint,
       bigint,
@@ -66,6 +69,10 @@ export async function GET(
       day: "numeric",
       year: "numeric",
     });
+    if (wallet && wallet !== "0x0000000000000000000000000000000000000000") {
+      discipleName = generateDiscipleName(wallet);
+      discipleQuote = generateDiscipleQuote(wallet);
+    }
   } catch {
     // fallback card still renders
   }
@@ -193,7 +200,7 @@ export async function GET(
                     color: "#f0d9a0",
                   }}
                 >
-                  The Faithful One
+                  {discipleName}
                 </span>
                 <span
                   style={{
@@ -202,7 +209,7 @@ export async function GET(
                     color: "#c8b27f",
                   }}
                 >
-                  Soulbound to the chain. Counted among the believers of the Temple.
+                  &ldquo;{discipleQuote}&rdquo;
                 </span>
               </div>
             </div>
