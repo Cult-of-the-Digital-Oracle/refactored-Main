@@ -18,7 +18,7 @@ const {
   MANTLE_RPC_URL,
   ORACLE_PRIVATE_KEY,
   ORACLE_MESSAGE_ADDRESS,
-  TEMPLE_VAULT_ADDRESS: _vaultAddr,
+  TEMPLE_VAULT_ADDRESS,
   BLESSING_DISTRIBUTOR_ADDRESS,
   USDY_ADDRESS,
   GROQ_API_KEY,
@@ -52,8 +52,9 @@ const YIELD_PER_ROUND = ethers.parseUnits("0.5", 6);
 async function runOracleCycle() {
   console.log(`\n[${new Date().toISOString()}] Oracle cycle starting...`);
 
-  const chainData = await fetchChainData(provider, USDY_ADDRESS);
+  const chainData = await fetchChainData(provider, USDY_ADDRESS, TEMPLE_VAULT_ADDRESS);
   console.log("Chain data fetched:", chainData.blockNumber);
+  console.log(`Temple: ${chainData.temple.discipleCount} disciples, ${chainData.temple.totalFaithUsdy} USDY staked, +${chainData.temple.newDisciples24h}/-${chainData.temple.exitedDisciples24h} last 24h`);
 
   // ── 1. Evaluate yesterday's prophecy ─────────────────────────────────────
   const yesterday = await getYesterdayProphecy(provider, ORACLE_MESSAGE_ADDRESS!);
