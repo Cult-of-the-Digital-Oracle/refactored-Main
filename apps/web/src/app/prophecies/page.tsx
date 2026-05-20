@@ -85,50 +85,22 @@ export default function PropheciesPage() {
     functionName: "totalFaith",
   });
 
-  const prophecyIndexes = useMemo(
-    () =>
-      Array.from({ length: Number(totalCount ?? 0n) }, (_, i) =>
-        BigInt(Number(totalCount ?? 0n) - 1 - i)
-      ),
-    [totalCount]
-  );
+  const todayDay = useMemo(() => BigInt(Math.floor(Date.now() / 86400000)), []);
 
-  const dayContracts = useMemo(
-    () =>
-      prophecyIndexes.map((index) => ({
-        address: CONTRACTS.oracleMessage,
-        abi: ORACLE_MESSAGE_ABI,
-        functionName: "prophecyDays" as const,
-        args: [index] as const,
-      })),
-    [prophecyIndexes]
-  );
-
-  const { data: dayResults, isLoading: isLoadingDays } = useReadContracts({
-    contracts: dayContracts,
-    query: { enabled: dayContracts.length > 0 },
-  });
-
-  const prophecyDays = useMemo(
-    () =>
-      (dayResults ?? [])
-        .map((item) => (item.status === "success" ? (item.result as bigint) : null))
-        .filter((day): day is bigint => day !== null),
-    [dayResults]
-  );
+  const dayCount = useMemo(() => Math.min(Number(totalCount ?? 0n), 30), [totalCount]);
 
   const prophecyContracts = useMemo(
     () =>
-      prophecyDays.map((day) => ({
+      Array.from({ length: dayCount }, (_, i) => ({
         address: CONTRACTS.oracleMessage,
         abi: ORACLE_MESSAGE_ABI,
         functionName: "getProphecy" as const,
-        args: [day] as const,
+        args: [todayDay - BigInt(i)] as const,
       })),
-    [prophecyDays]
+    [todayDay, dayCount]
   );
 
-  const { data: prophecyResults, isLoading: isLoadingProphecies } = useReadContracts({
+  const { data: prophecyResults, isLoading } = useReadContracts({
     contracts: prophecyContracts,
     query: { enabled: prophecyContracts.length > 0 },
   });
@@ -140,12 +112,10 @@ export default function PropheciesPage() {
         if (item.status !== "success" || !item.result) return null;
         const p = item.result as unknown as Prophecy;
         if (!p.text) return null;
-        return { ...p, day: Number(prophecyDays[i]) };
+        return { ...p, day: Number(todayDay) - i };
       })
       .filter((p): p is ProphecyEntry => p !== null);
-  }, [prophecyDays, prophecyResults]);
-
-  const isLoading = isLoadingDays || isLoadingProphecies;
+  }, [prophecyResults, todayDay]);
 
   return (
     <main className="pixel-grid relative min-h-screen overflow-hidden px-4 py-6 sm:px-6">

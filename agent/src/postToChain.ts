@@ -4,8 +4,8 @@ import { ethers } from "ethers";
 const ORACLE_MESSAGE_ABI = [
   "function postProphecy(string calldata text) external returns (uint256 day)",
   "function resolveProphecy(uint256 day, uint8 score, string calldata reason, string calldata evidence) external",
-  "function getProphecy(uint256 day) external view returns (tuple(string text, uint256 timestamp, uint8 fulfillmentScore, string resolutionReason, string evidence, bool resolved))",
-  "function todaysProphecy() external view returns (tuple(string text, uint256 timestamp, uint8 fulfillmentScore, string resolutionReason, string evidence, bool resolved))",
+  "function getProphecy(uint256 day) external view returns (tuple(uint48 timestamp, uint8 fulfillmentScore, bool resolved, string text, string resolutionReason, string evidence))",
+  "function todaysProphecy() external view returns (tuple(uint48 timestamp, uint8 fulfillmentScore, bool resolved, string text, string resolutionReason, string evidence))",
 ];
 
 const BLESSING_DISTRIBUTOR_ABI = [
