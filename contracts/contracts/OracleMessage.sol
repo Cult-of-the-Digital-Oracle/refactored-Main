@@ -6,15 +6,21 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 /// @notice Immutable on-chain record of every AI prophecy and its fulfillment score.
 ///         The oracle EOA (AI agent wallet) is the only caller allowed to post/resolve.
 contract OracleMessage is Ownable {
-    // Packed: fulfillmentScore (1 byte) + resolved (1 byte) share one slot.
-    // text and timestamp first so dynamic fields don't split the packed pair.
+    // Slot layout (4 slots per Prophecy):
+    //   slot 0: timestamp(6) + fulfillmentScore(1) + resolved(1) = 8 bytes — packed
+    //   slot 1: text (string length pointer)
+    //   slot 2: resolutionReason (string length pointer)
+    //   slot 3: evidence (string length pointer)
+    //
+    // Putting value types FIRST means postProphecy + resolveProphecy both hit
+    // slot 0 in a single SLOAD to perform all guard checks.
     struct Prophecy {
-        string text;             // slot 0 (length), data at keccak(slot)
-        uint256 timestamp;       // slot 1
-        uint8 fulfillmentScore;  // slot 2, byte 0 — packed with resolved
-        bool resolved;           // slot 2, byte 1
-        string resolutionReason; // slot 3
-        string evidence;         // slot 4
+        uint48 timestamp;        // slot 0, bytes 0-5
+        uint8 fulfillmentScore;  // slot 0, byte 6  } 8 bytes packed
+        bool resolved;           // slot 0, byte 7  }
+        string text;             // slot 1
+        string resolutionReason; // slot 2
+        string evidence;         // slot 3
     }
 
     error NotOracle();
@@ -28,10 +34,7 @@ contract OracleMessage is Ownable {
     event OracleUpdated(address indexed newOracle);
 
     address public oracle;
-
     mapping(uint256 => Prophecy) private _prophecies;
-
-    // Replaces uint256[] prophecyDays — array push cost ~20k gas per call vs simple increment.
     uint256 public totalProphecies;
 
     modifier onlyOracle() {
@@ -46,14 +49,14 @@ contract OracleMessage is Ownable {
     /// @notice Post today's prophecy. One per day.
     function postProphecy(string calldata text) external onlyOracle returns (uint256 day) {
         day = block.timestamp / 1 days;
-        if (bytes(_prophecies[day].text).length > 0) revert AlreadyPosted();
+        // timestamp in slot 0 — single SLOAD to check existence.
+        if (_prophecies[day].timestamp != 0) revert AlreadyPosted();
 
-        // Field-by-field write: avoids writing zero-value fields to cold storage slots.
+        _prophecies[day].timestamp = uint48(block.timestamp);
         _prophecies[day].text = text;
-        _prophecies[day].timestamp = block.timestamp;
-        // fulfillmentScore=0, resolved=false are storage defaults — no SSTORE needed.
+        // fulfillmentScore=0, resolved=false are storage defaults — no SSTORE.
 
-        ++totalProphecies;
+        unchecked { ++totalProphecies; }
 
         emit ProphecyDelivered(day, text, block.timestamp);
     }
@@ -65,15 +68,17 @@ contract OracleMessage is Ownable {
         string calldata reason,
         string calldata evidence
     ) external onlyOracle {
-        if (bytes(_prophecies[day].text).length == 0) revert NoProphecyForDay();
-        if (_prophecies[day].resolved) revert AlreadyResolved();
+        Prophecy storage p = _prophecies[day];
+        // Both checks hit slot 0 — optimizer issues single SLOAD for the pointer.
+        if (p.timestamp == 0) revert NoProphecyForDay();
+        if (p.resolved) revert AlreadyResolved();
         if (score > 100) revert InvalidScore();
 
-        // fulfillmentScore + resolved packed in same slot → single SSTORE for both.
-        _prophecies[day].fulfillmentScore = score;
-        _prophecies[day].resolved = true;
-        _prophecies[day].resolutionReason = reason;
-        _prophecies[day].evidence = evidence;
+        // fulfillmentScore + resolved share slot 0 — one SSTORE for both.
+        p.fulfillmentScore = score;
+        p.resolved = true;
+        p.resolutionReason = reason;
+        p.evidence = evidence;
 
         emit ProphecyResolved(day, score, reason, evidence);
     }

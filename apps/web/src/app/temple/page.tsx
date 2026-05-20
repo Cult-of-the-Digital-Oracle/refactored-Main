@@ -120,15 +120,15 @@ export default function TemplePage() {
     query: { enabled: !!address },
   });
 
-  // New struct order: [address, uint88 stakeAmount, bool active, uint256 joinedAt, uint256 exitedAt, uint256 karma]
+  // Struct order: [address, uint88 stakeAmount, bool active, uint128 karma, uint64 joinedAt, uint64 exitedAt]
   const disciple: Disciple | undefined = discipleRaw
     ? {
-        disciple: (discipleRaw as readonly [`0x${string}`, bigint, boolean, bigint, bigint, bigint])[0],
+        disciple:    (discipleRaw as readonly [`0x${string}`, bigint, boolean, bigint, bigint, bigint])[0],
         stakeAmount: (discipleRaw as readonly [`0x${string}`, bigint, boolean, bigint, bigint, bigint])[1],
-        active: (discipleRaw as readonly [`0x${string}`, bigint, boolean, bigint, bigint, bigint])[2],
-        joinedAt: (discipleRaw as readonly [`0x${string}`, bigint, boolean, bigint, bigint, bigint])[3],
-        exitedAt: (discipleRaw as readonly [`0x${string}`, bigint, boolean, bigint, bigint, bigint])[4],
-        karma: (discipleRaw as readonly [`0x${string}`, bigint, boolean, bigint, bigint, bigint])[5],
+        active:      (discipleRaw as readonly [`0x${string}`, bigint, boolean, bigint, bigint, bigint])[2],
+        karma:       (discipleRaw as readonly [`0x${string}`, bigint, boolean, bigint, bigint, bigint])[3],
+        joinedAt:    (discipleRaw as readonly [`0x${string}`, bigint, boolean, bigint, bigint, bigint])[4],
+        exitedAt:    (discipleRaw as readonly [`0x${string}`, bigint, boolean, bigint, bigint, bigint])[5],
       }
     : undefined;
 
