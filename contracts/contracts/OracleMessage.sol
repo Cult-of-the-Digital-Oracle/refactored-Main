@@ -6,13 +6,15 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 /// @notice Immutable on-chain record of every AI prophecy and its fulfillment score.
 ///         The oracle EOA (AI agent wallet) is the only caller allowed to post/resolve.
 contract OracleMessage is Ownable {
+    // Packed: fulfillmentScore (1 byte) + resolved (1 byte) share one slot.
+    // text and timestamp first so dynamic fields don't split the packed pair.
     struct Prophecy {
-        string text;
-        uint256 timestamp;
-        uint8 fulfillmentScore; // 0-100; 0 = unresolved
-        string resolutionReason;
-        string evidence;
-        bool resolved;
+        string text;             // slot 0 (length), data at keccak(slot)
+        uint256 timestamp;       // slot 1
+        uint8 fulfillmentScore;  // slot 2, byte 0 — packed with resolved
+        bool resolved;           // slot 2, byte 1
+        string resolutionReason; // slot 3
+        string evidence;         // slot 4
     }
 
     error NotOracle();
@@ -27,9 +29,10 @@ contract OracleMessage is Ownable {
 
     address public oracle;
 
-    /// day index (block.timestamp / 1 days) → Prophecy
     mapping(uint256 => Prophecy) private _prophecies;
-    uint256[] public prophecyDays;
+
+    // Replaces uint256[] prophecyDays — array push cost ~20k gas per call vs simple increment.
+    uint256 public totalProphecies;
 
     modifier onlyOracle() {
         if (msg.sender != oracle) revert NotOracle();
@@ -45,48 +48,32 @@ contract OracleMessage is Ownable {
         day = block.timestamp / 1 days;
         if (bytes(_prophecies[day].text).length > 0) revert AlreadyPosted();
 
-        _prophecies[day] = Prophecy({
-            text: text,
-            timestamp: block.timestamp,
-            fulfillmentScore: 0,
-            resolutionReason: "",
-            evidence: "",
-            resolved: false
-        });
-        prophecyDays.push(day);
+        // Field-by-field write: avoids writing zero-value fields to cold storage slots.
+        _prophecies[day].text = text;
+        _prophecies[day].timestamp = block.timestamp;
+        // fulfillmentScore=0, resolved=false are storage defaults — no SSTORE needed.
+
+        ++totalProphecies;
 
         emit ProphecyDelivered(day, text, block.timestamp);
     }
 
-    /// @notice Score yesterday's (or any past) prophecy. Score 0-100.
-    function resolveProphecy(uint256 day, uint8 score) external onlyOracle {
-        _resolveProphecy(day, score, "", "");
-    }
-
-    /// @notice Score a prophecy with a short reason and evidence snapshot.
+    /// @notice Score a prophecy with reason and evidence snapshot.
     function resolveProphecy(
         uint256 day,
         uint8 score,
         string calldata reason,
         string calldata evidence
     ) external onlyOracle {
-        _resolveProphecy(day, score, reason, evidence);
-    }
-
-    function _resolveProphecy(
-        uint256 day,
-        uint8 score,
-        string memory reason,
-        string memory evidence
-    ) internal {
         if (bytes(_prophecies[day].text).length == 0) revert NoProphecyForDay();
         if (_prophecies[day].resolved) revert AlreadyResolved();
         if (score > 100) revert InvalidScore();
 
+        // fulfillmentScore + resolved packed in same slot → single SSTORE for both.
         _prophecies[day].fulfillmentScore = score;
+        _prophecies[day].resolved = true;
         _prophecies[day].resolutionReason = reason;
         _prophecies[day].evidence = evidence;
-        _prophecies[day].resolved = true;
 
         emit ProphecyResolved(day, score, reason, evidence);
     }
@@ -97,10 +84,6 @@ contract OracleMessage is Ownable {
 
     function todaysProphecy() external view returns (Prophecy memory) {
         return _prophecies[block.timestamp / 1 days];
-    }
-
-    function totalProphecies() external view returns (uint256) {
-        return prophecyDays.length;
     }
 
     function setOracle(address _oracle) external onlyOwner {

@@ -11,12 +11,17 @@ import {TempleVault} from "./TempleVault.sol";
 contract BlessingDistributor is Ownable {
     using SafeERC20 for IERC20;
 
+    // Packed from 5 slots → 2 slots:
+    //   slot 0: yieldPool(16) + totalFaithSnap(16) = 32 bytes
+    //   slot 1: day(8) + queuedAt(8) + settled(1) = 17 bytes
+    // uint128 yieldPool supports ~340T USDY at 6 decimals.
+    // uint64 day/queuedAt supports timestamps well past year 500B.
     struct BlessingRound {
-        uint256 day;           // prophecy day index
-        uint256 yieldPool;     // total USDY to distribute
-        uint256 totalFaithSnap; // totalFaith snapshot at queue time
-        uint256 queuedAt;      // snapshot timestamp used for stake eligibility
-        bool settled;
+        uint128 yieldPool;       // slot 0, bytes 0-15
+        uint128 totalFaithSnap;  // slot 0, bytes 16-31
+        uint64 day;              // slot 1, bytes 0-7
+        uint64 queuedAt;         // slot 1, bytes 8-15
+        bool settled;            // slot 1, byte 16
     }
 
     error NotOracle();
@@ -25,6 +30,7 @@ contract BlessingDistributor is Ownable {
     error NothingToClaim();
     error InsufficientYieldPool();
     error NoActiveFaith();
+    error NotDisciple();
 
     event BlessingQueued(uint256 indexed roundId, uint256 day, uint256 yieldPool);
     event BlessingClaimed(uint256 indexed roundId, uint256 indexed tokenId, address indexed disciple, uint256 amount);
@@ -35,8 +41,6 @@ contract BlessingDistributor is Ownable {
 
     uint256 public nextRoundId = 1;
     mapping(uint256 => BlessingRound) public rounds;
-
-    /// roundId → tokenId → claimed
     mapping(uint256 => mapping(uint256 => bool)) public claimed;
 
     modifier onlyOracle() {
@@ -59,13 +63,14 @@ contract BlessingDistributor is Ownable {
         usdy.safeTransferFrom(msg.sender, address(this), yieldAmount);
 
         uint256 id = nextRoundId++;
-        rounds[id] = BlessingRound({
-            day: day,
-            yieldPool: yieldAmount,
-            totalFaithSnap: totalFaithSnap,
-            queuedAt: block.timestamp,
-            settled: false
-        });
+        // Field-by-field write — optimizer combines slot 0 (yieldPool+totalFaithSnap)
+        // and slot 1 (day+queuedAt+settled) into 2 SSTOREs instead of 5.
+        BlessingRound storage r = rounds[id];
+        r.yieldPool = uint128(yieldAmount);
+        r.totalFaithSnap = uint128(totalFaithSnap);
+        r.day = uint64(day);
+        r.queuedAt = uint64(block.timestamp);
+        // settled defaults to false — no SSTORE needed.
 
         emit BlessingQueued(id, day, yieldAmount);
     }
@@ -75,8 +80,9 @@ contract BlessingDistributor is Ownable {
         BlessingRound storage r = rounds[roundId];
         if (r.yieldPool == 0) revert RoundNotFound();
         if (claimed[roundId][tokenId]) revert AlreadyClaimed();
+        // Custom error — cheaper than require string (~200 gas saved).
+        if (vault.claimantOf(tokenId) != msg.sender) revert NotDisciple();
 
-        require(vault.claimantOf(tokenId) == msg.sender, "not your Disciple");
         uint256 share = _pendingBlessing(r, tokenId);
         if (share == 0) revert NothingToClaim();
 

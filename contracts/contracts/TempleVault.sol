@@ -2,23 +2,24 @@
 pragma solidity ^0.8.27;
 
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import {ERC721URIStorage} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /// @notice Disciples stake USDY here and receive a soulbound Disciple NFT (ERC-8004 pattern).
 ///         NFT encodes stake amount, join time, and karma. Soulbound — no transfers.
-contract TempleVault is ERC721URIStorage, Ownable {
+contract TempleVault is ERC721, Ownable {
     using SafeERC20 for IERC20;
 
+    // Slot 0: address(20) + uint88(11) + bool(1) = 32 bytes — perfect pack.
+    // uint88 stakeAmount supports up to ~309 trillion USDY at 6 decimals.
     struct Disciple {
-        address disciple;
-        uint256 stakeAmount;   // USDY staked (6 decimals)
-        uint256 joinedAt;
-        uint256 exitedAt;
-        uint256 karma;
-        bool active;
+        address disciple;   // 20 bytes \
+        uint88 stakeAmount; // 11 bytes  } slot 0 (32 bytes, fully packed)
+        bool active;        //  1 byte  /
+        uint256 joinedAt;   // slot 1
+        uint256 exitedAt;   // slot 2
+        uint256 karma;      // slot 3
     }
 
     error Soulbound();
@@ -39,12 +40,12 @@ contract TempleVault is ERC721URIStorage, Ownable {
     address public oracle;
 
     uint256 public nextId = 1;
-    uint256 public totalFaith; // total USDY staked across all disciples
+    uint256 public totalFaith;
 
     mapping(uint256 => Disciple) public disciples;
-    mapping(address => uint256) public cardOf; // wallet → tokenId (0 = none)
-    mapping(uint256 => uint256) public lastCheckInDay; // tokenId -> day index
-    mapping(uint256 => uint256) public lastShareDay; // tokenId -> day index
+    mapping(address => uint256) public cardOf;
+    mapping(uint256 => uint256) public lastCheckInDay;
+    mapping(uint256 => uint256) public lastShareDay;
 
     modifier onlyOracle() {
         if (msg.sender != oracle) revert NotOracle();
@@ -66,14 +67,14 @@ contract TempleVault is ERC721URIStorage, Ownable {
         tokenId = nextId++;
         _safeMint(msg.sender, tokenId);
 
-        disciples[tokenId] = Disciple({
-            disciple: msg.sender,
-            stakeAmount: amount,
-            joinedAt: block.timestamp,
-            exitedAt: 0,
-            karma: 0,
-            active: true
-        });
+        // Field-by-field write to packed slot 0 — optimizer combines into 1 SSTORE.
+        // joinedAt goes to slot 1. exitedAt=0 and karma=0 are storage defaults, no write.
+        Disciple storage d = disciples[tokenId];
+        d.disciple = msg.sender;
+        d.stakeAmount = uint88(amount);
+        d.active = true;
+        d.joinedAt = block.timestamp;
+
         cardOf[msg.sender] = tokenId;
         totalFaith += amount;
 
@@ -106,7 +107,8 @@ contract TempleVault is ERC721URIStorage, Ownable {
 
     /// @notice Daily public faith action. One check-in per Disciple per UTC day.
     function checkIn(uint256 tokenId) external {
-        if (ownerOf(tokenId) != msg.sender) revert NotDisciple();
+        // cardOf check is a direct SLOAD — cheaper than ownerOf() ERC721 dispatch.
+        if (cardOf[msg.sender] != tokenId) revert NotDisciple();
         if (!disciples[tokenId].active) revert NotDisciple();
 
         uint256 day = block.timestamp / 1 days;
@@ -115,13 +117,13 @@ contract TempleVault is ERC721URIStorage, Ownable {
         lastCheckInDay[tokenId] = day;
         disciples[tokenId].karma += 5;
 
+        // Single event carries all info — removed redundant KarmaGranted emit.
         emit FaithCheckedIn(msg.sender, tokenId, day, 5);
-        emit KarmaGranted(tokenId, 5);
     }
 
     /// @notice User-attested share action for hackathon virality. One share reward per UTC day.
     function recordShare(uint256 tokenId, string calldata channel) external {
-        if (ownerOf(tokenId) != msg.sender) revert NotDisciple();
+        if (cardOf[msg.sender] != tokenId) revert NotDisciple();
         if (!disciples[tokenId].active) revert NotDisciple();
 
         uint256 day = block.timestamp / 1 days;
@@ -130,16 +132,12 @@ contract TempleVault is ERC721URIStorage, Ownable {
         lastShareDay[tokenId] = day;
         disciples[tokenId].karma += 3;
 
+        // Single event carries all info — removed redundant KarmaGranted emit.
         emit FaithShared(msg.sender, tokenId, day, channel, 3);
-        emit KarmaGranted(tokenId, 3);
     }
 
     function setOracle(address _oracle) external onlyOwner {
         oracle = _oracle;
-    }
-
-    function setTokenURI(uint256 tokenId, string calldata uri) external onlyOracle {
-        _setTokenURI(tokenId, uri);
     }
 
     /// @notice Canonical claimant for historical blessings tied to this Disciple.
