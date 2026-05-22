@@ -136,14 +136,14 @@ export const TEMPLE_VAULT_ABI = [
     name: "lastCheckInDay",
     type: "function",
     stateMutability: "view",
-    inputs: [{ name: "tokenId", type: "uint256" }],
+    inputs: [{ name: "wallet", type: "address" }],
     outputs: [{ name: "", type: "uint256" }],
   },
   {
     name: "lastShareDay",
     type: "function",
     stateMutability: "view",
-    inputs: [{ name: "tokenId", type: "uint256" }],
+    inputs: [{ name: "wallet", type: "address" }],
     outputs: [{ name: "", type: "uint256" }],
   },
   {

@@ -94,16 +94,16 @@ export default function TemplePage() {
     address: CONTRACTS.templeVault,
     abi: TEMPLE_VAULT_ABI,
     functionName: "lastCheckInDay",
-    args: [tokenId!],
-    query: { enabled: isDisciple },
+    args: [address!],
+    query: { enabled: !!address },
   });
 
   const { data: lastShareDay, refetch: refetchLastShareDay } = useReadContract({
     address: CONTRACTS.templeVault,
     abi: TEMPLE_VAULT_ABI,
     functionName: "lastShareDay",
-    args: [tokenId!],
-    query: { enabled: isDisciple },
+    args: [address!],
+    query: { enabled: !!address },
   });
 
   const { data: usdyBalance, refetch: refetchBalance } = useReadContract({

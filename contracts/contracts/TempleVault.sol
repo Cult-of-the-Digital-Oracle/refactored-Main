@@ -51,8 +51,8 @@ contract TempleVault is ERC721, Ownable {
 
     mapping(uint256 => Disciple) public disciples;
     mapping(address => uint256) public cardOf;
-    mapping(uint256 => uint256) public lastCheckInDay;
-    mapping(uint256 => uint256) public lastShareDay;
+    mapping(address => uint256) public lastCheckInDay;
+    mapping(address => uint256) public lastShareDay;
 
     modifier onlyOracle() {
         if (msg.sender != oracle) revert NotOracle();
@@ -122,9 +122,9 @@ contract TempleVault is ERC721, Ownable {
         if (!disciples[tokenId].active) revert NotDisciple();
 
         uint256 day = block.timestamp / 1 days;
-        if (lastCheckInDay[tokenId] == day) revert AlreadyCheckedIn();
+        if (lastCheckInDay[msg.sender] == day) revert AlreadyCheckedIn();
 
-        lastCheckInDay[tokenId] = day;
+        lastCheckInDay[msg.sender] = day;
         unchecked { disciples[tokenId].karma += 5; }
 
         emit FaithCheckedIn(msg.sender, tokenId, day, 5);
@@ -136,9 +136,9 @@ contract TempleVault is ERC721, Ownable {
         if (!disciples[tokenId].active) revert NotDisciple();
 
         uint256 day = block.timestamp / 1 days;
-        if (lastShareDay[tokenId] == day) revert AlreadyShared();
+        if (lastShareDay[msg.sender] == day) revert AlreadyShared();
 
-        lastShareDay[tokenId] = day;
+        lastShareDay[msg.sender] = day;
         unchecked { disciples[tokenId].karma += 3; }
 
         emit FaithShared(msg.sender, tokenId, day, channel, 3);
