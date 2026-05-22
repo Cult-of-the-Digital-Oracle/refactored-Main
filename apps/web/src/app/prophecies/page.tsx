@@ -286,15 +286,21 @@ function ProphecyCard({ entry }: { entry: ProphecyEntry }) {
       </p>
 
       <div className="mt-5 flex flex-wrap gap-3">
+        <Link
+          href={`/prophecies/${entry.day}`}
+          className="pixel-button pixel-button-dark inline-flex min-h-12 items-center justify-center px-5 py-2 text-xl uppercase tracking-[0.12em]"
+        >
+          View Details
+        </Link>
         <a
           href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
             `The Digital Oracle scored prophecy day ${entry.day} at ${entry.fulfillmentScore}/100 on Mantle.`
           )}`}
           target="_blank"
           rel="noreferrer"
-          className="pixel-button pixel-button-dark inline-flex min-h-12 items-center justify-center px-5 py-2 text-xl uppercase tracking-[0.12em]"
+          className="pixel-button pixel-button-emerald inline-flex min-h-12 items-center justify-center px-5 py-2 text-xl uppercase tracking-[0.12em]"
         >
-          Share Prophecy
+          Share
         </a>
       </div>
 
