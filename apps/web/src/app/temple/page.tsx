@@ -64,6 +64,7 @@ export default function TemplePage() {
   const { address, isConnected } = useAccount();
   const [amountStr, setAmountStr] = useState("10");
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [lastAction, setLastAction] = useState<"faucet"|"approve"|"enter"|"exit"|"checkIn"|"share"|null>(null);
 
   const { data: tokenId, refetch: refetchCard } = useReadContract({
     address: CONTRACTS.templeVault,
@@ -153,8 +154,16 @@ export default function TemplePage() {
     refetchLastCheckInDay();
     refetchLastShareDay();
     refetchTotalFaith();
-    setSuccessMsg("Transaction confirmed on Mantle.");
-    const t = window.setTimeout(() => { setSuccessMsg(null); resetWrite(); }, 3000);
+    const msgs: Record<string, string> = {
+      faucet:  "1,000 USDY minted to your wallet.",
+      approve: "USDY approved. Now click Enter Temple to stake.",
+      enter:   "Welcome, Disciple. Your soul is bound to the chain.",
+      exit:    "Left the Temple. USDY returned to your wallet.",
+      checkIn: "Daily faith recorded. +5 karma.",
+      share:   "Share recorded. +3 karma.",
+    };
+    setSuccessMsg(msgs[lastAction ?? ""] ?? "Transaction confirmed on Mantle.");
+    const t = window.setTimeout(() => { setSuccessMsg(null); resetWrite(); }, 4000);
     return () => window.clearTimeout(t);
   }, [isSuccess]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -171,10 +180,12 @@ export default function TemplePage() {
   const isBusy = isPending || isConfirming;
 
   function handleFaucet() {
+    setLastAction("faucet");
     writeContract({ address: CONTRACTS.usdy, abi: FAUCET_ABI, functionName: "faucet" });
   }
 
   function handleApprove() {
+    setLastAction("approve");
     writeContract({
       address: CONTRACTS.usdy,
       abi: ERC20_ABI,
@@ -184,6 +195,7 @@ export default function TemplePage() {
   }
 
   function handleEnter() {
+    setLastAction("enter");
     writeContract({
       address: CONTRACTS.templeVault,
       abi: TEMPLE_VAULT_ABI,
@@ -194,6 +206,7 @@ export default function TemplePage() {
 
   function handleExit() {
     if (!tokenId) return;
+    setLastAction("exit");
     writeContract({
       address: CONTRACTS.templeVault,
       abi: TEMPLE_VAULT_ABI,
@@ -204,6 +217,7 @@ export default function TemplePage() {
 
   function handleCheckIn() {
     if (!tokenId) return;
+    setLastAction("checkIn");
     writeContract({
       address: CONTRACTS.templeVault,
       abi: TEMPLE_VAULT_ABI,
@@ -214,6 +228,7 @@ export default function TemplePage() {
 
   function handleRecordShare() {
     if (!tokenId) return;
+    setLastAction("share");
     writeContract({
       address: CONTRACTS.templeVault,
       abi: TEMPLE_VAULT_ABI,
@@ -627,7 +642,15 @@ function StakeForm({
       {needsApproval && !insufficientBalance && (
         <PixelFrame className="pixel-panel-soft mt-4 px-4 py-3" round={1}>
           <p className="text-xl uppercase text-[var(--pixel-border)]">
-            Step 1/2 · Approve USDY spend, then enter the Temple.
+            Step 1 of 2 — Approve USDY first, then Enter Temple.
+          </p>
+        </PixelFrame>
+      )}
+
+      {!needsApproval && amountBN > 0n && !insufficientBalance && (
+        <PixelFrame className="pixel-panel-emerald mt-4 px-4 py-3" round={1}>
+          <p className="text-xl uppercase text-[var(--pixel-parchment)]">
+            Step 2 of 2 — USDY approved. Click Enter Temple below.
           </p>
         </PixelFrame>
       )}
