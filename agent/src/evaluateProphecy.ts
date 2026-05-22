@@ -47,14 +47,25 @@ export async function evaluateProphecy(
   // Blend: 65% semantic LLM judgment, 25% chain signals, 10% temple activity bonus
   const score = clampScore(Math.round(semanticScore * 0.65 + signalScore * 0.25 + templeBonus * 0.10));
   const reason =
-    parsed.reason?.slice(0, 280) ??
-    `Hybrid score blended model judgment with chain signals and temple activity.`;
+    (parsed.reason?.slice(0, 160) ??
+    `Hybrid score blended model judgment with chain signals and temple activity.`);
 
-  return {
-    score,
-    reason,
-    evidence: `hybrid=${score}; model=${semanticScore}; signalBaseline=${signalScore}; templeBonus=${templeBonus}; ${chainData.evidence}`,
-  };
+  const t = chainData.temple;
+  const s = chainData.signals;
+  const evidence = [
+    `hybrid=${score}`,
+    `model=${semanticScore}`,
+    `baseline=${signalScore}`,
+    `templeBonus=${templeBonus}`,
+    `disciples=${t.discipleCount}`,
+    `faith=${t.totalFaithUsdy}`,
+    `new24h=${t.newDisciples24h}`,
+    `exited24h=${t.exitedDisciples24h}`,
+    `tx24h=${s.estimatedTransactions24h}`,
+    `usdy=${s.usdyTransferCount}`,
+  ].join("; ");
+
+  return { score, reason, evidence };
 }
 
 function templeActivityBonus(chainData: ChainSnapshot): number {
