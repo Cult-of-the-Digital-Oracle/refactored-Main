@@ -63,6 +63,7 @@ function fmtDate(ts: bigint | undefined): string {
 export default function TemplePage() {
   const { address, isConnected } = useAccount();
   const [amountStr, setAmountStr] = useState("10");
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const { data: tokenId, refetch: refetchCard } = useReadContract({
     address: CONTRACTS.templeVault,
@@ -82,7 +83,7 @@ export default function TemplePage() {
     query: { enabled: isDisciple },
   });
 
-  const { data: totalFaith } = useReadContract({
+  const { data: totalFaith, refetch: refetchTotalFaith } = useReadContract({
     address: CONTRACTS.templeVault,
     abi: TEMPLE_VAULT_ABI,
     functionName: "totalFaith",
@@ -151,7 +152,10 @@ export default function TemplePage() {
     refetchDisciple();
     refetchLastCheckInDay();
     refetchLastShareDay();
-    resetWrite();
+    refetchTotalFaith();
+    setSuccessMsg("Transaction confirmed on Mantle.");
+    const t = window.setTimeout(() => { setSuccessMsg(null); resetWrite(); }, 3000);
+    return () => window.clearTimeout(t);
   }, [isSuccess]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const amountBN = (() => {
@@ -360,6 +364,14 @@ export default function TemplePage() {
               <PixelFrame className="pixel-panel-danger px-4 py-3" round={1}>
                 <p className="break-all text-xl text-[#ffd1c9]">
                   {(writeError as { shortMessage?: string }).shortMessage ?? writeError.message}
+                </p>
+              </PixelFrame>
+            )}
+
+            {successMsg && (
+              <PixelFrame className="pixel-panel-emerald px-4 py-3" round={1}>
+                <p className="text-center text-xl uppercase text-[var(--pixel-parchment)]">
+                  ✓ {successMsg}
                 </p>
               </PixelFrame>
             )}
@@ -587,7 +599,7 @@ function StakeForm({
           alt="USDY coin"
           width={40}
           height={40}
-          className="pixelated h-10 w-10"
+          className="pixelated h-10 w-10 animate-bounce"
         />
         <OracleButton onClick={onFaucet} disabled={isBusy} variant="danger">
           Faucet 1K

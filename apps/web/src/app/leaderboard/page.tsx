@@ -13,16 +13,17 @@ import { CONTRACTS, TEMPLE_VAULT_ABI } from "@/lib/contracts";
 import { ORACLE_ASSETS } from "@/lib/oracleAssets";
 import { generateDiscipleName } from "@/lib/discipleName";
 
-type DiscipleTuple = readonly [`0x${string}`, bigint, bigint, bigint, bigint, boolean];
+// v3 struct: [address, uint88 stakeAmount, bool active, uint128 karma, uint64 joinedAt, uint64 exitedAt]
+type DiscipleTuple = readonly [`0x${string}`, bigint, boolean, bigint, bigint, bigint];
 
 type RankedDisciple = {
   tokenId: bigint;
   wallet: `0x${string}`;
   stakeAmount: bigint;
+  active: boolean;
+  karma: bigint;
   joinedAt: bigint;
   exitedAt: bigint;
-  karma: bigint;
-  active: boolean;
   rankScore: number;
 };
 
@@ -87,12 +88,12 @@ export default function LeaderboardPage() {
         const raw = result.result as unknown as DiscipleTuple;
         const item: RankedDisciple = {
           tokenId: tokenIds[index],
-          wallet: raw[0],
+          wallet:      raw[0],
           stakeAmount: raw[1],
-          joinedAt: raw[2],
-          exitedAt: raw[3],
-          karma: raw[4],
-          active: raw[5],
+          active:      raw[2],
+          karma:       raw[3],
+          joinedAt:    raw[4],
+          exitedAt:    raw[5],
           rankScore: 0,
         };
         item.rankScore = scoreDisciple(item);
