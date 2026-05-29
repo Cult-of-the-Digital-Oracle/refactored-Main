@@ -1,29 +1,67 @@
 import OpenAI from "openai";
 import type { ChainSnapshot } from "./fetchChainData";
 
-const EVAL_SYSTEM = `You are a strict fulfillment judge for an on-chain oracle that watches its own community of believers.
+const EVAL_SYSTEM = `You are a strict fulfillment judge for an on-chain oracle that watches its own community of believers and its simulated civilization.
 
-Given a prophecy and a snapshot of the Mantle chain + the Temple's current state, decide how well the prophecy maps to what actually happened. Ground your answer only in the supplied metrics. Do not invent facts.
+Given a prophecy and a snapshot of the Mantle chain + the Temple + the Civilization's yesterday and today state, decide how well the prophecy maps to what actually happened. Ground your answer only in the supplied metrics. Do not invent facts.
 
-Pay special attention to Temple-specific signals:
-- If the prophecy implied growth ("new souls", "the faithful multiply", "the ledger expands") and disciples or faith actually increased → score higher
-- If the prophecy implied exodus ("apostates depart", "the void claims", "the ledger thins") and disciples exited or faith decreased → score higher
-- If the prophecy referenced the chain's pulse and network activity was elevated → score higher
+Pay special attention to Temple and Civilization signals:
+1. Temple signals:
+- If the prophecy implied growth in the staking pool and faith/disciples actually increased → score higher.
+- If the prophecy implied exodus or staking decline and faith/disciples decreased → score higher.
+2. Civilization signals:
+- If the prophecy predicted dark events (plague, sky fire, meteor, war) and an evil tool was executed or population dropped → score higher.
+- If the prophecy predicted growth, monuments, peace and a good tool was executed, resources or faith rose → score higher.
+- If it predicted schisms or conversions, and factions changed or active regions split → score higher.
 
 Output ONLY a JSON object: {"score": <0-100>, "reason": "<one sentence>"}`;
+
+export interface CivSnapshotData {
+  totalEntities: number;
+  totalPopulation: number;
+  totalFaith: bigint;
+  dominantFaction: number;
+  activeRegions: number;
+}
 
 export async function evaluateProphecy(
   client: OpenAI,
   prophecyText: string,
-  chainData: ChainSnapshot
+  chainData: ChainSnapshot,
+  yesterdayCiv?: CivSnapshotData,
+  todayCiv?: CivSnapshotData,
+  executedTools?: number[],
+  modelName: string = process.env.ORACLE_MODEL || "google/gemini-2.5-flash"
 ): Promise<{ score: number; reason: string; evidence: string }> {
+  
+  let civSummary = "";
+  if (yesterdayCiv && todayCiv) {
+    const yFaction = yesterdayCiv.dominantFaction === 0 ? "Believer" : yesterdayCiv.dominantFaction === 1 ? "Apostate" : "Balanced";
+    const tFaction = todayCiv.dominantFaction === 0 ? "Believer" : todayCiv.dominantFaction === 1 ? "Apostate" : "Balanced";
+    const yFaith = (Number(yesterdayCiv.totalFaith) / 1e6).toFixed(2);
+    const tFaith = (Number(todayCiv.totalFaith) / 1e6).toFixed(2);
+
+    civSummary += `\nSimulated Civilization Changes (Yesterday -> Today):\n`;
+    civSummary += `- Total entities: ${yesterdayCiv.totalEntities} -> ${todayCiv.totalEntities}\n`;
+    civSummary += `- Total population: ${yesterdayCiv.totalPopulation} -> ${todayCiv.totalPopulation}\n`;
+    civSummary += `- Total faith: ${yFaith} -> ${tFaith}\n`;
+    civSummary += `- Dominant faction: ${yFaction} -> ${tFaction}\n`;
+    civSummary += `- Active Regions: ${yesterdayCiv.activeRegions} -> ${todayCiv.activeRegions}\n`;
+    
+    if (executedTools && executedTools.length > 0) {
+      civSummary += `- Divine Tools Executed: [${executedTools.join(", ")}]\n`;
+    } else {
+      civSummary += `- Divine Tools Executed: None\n`;
+    }
+  }
+
   const response = await client.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
+    model: modelName,
     messages: [
       { role: "system", content: EVAL_SYSTEM },
       {
         role: "user",
-        content: `Prophecy: "${prophecyText}"\n\nMantle chain + Temple snapshot:\n${chainData.summary}\n\nScore the fulfillment.`,
+        content: `Prophecy: "${prophecyText}"\n\nMantle chain + Temple snapshot:\n${chainData.summary}\n${civSummary}\n\nScore the fulfillment.`,
       },
     ],
     max_tokens: 120,
@@ -37,18 +75,45 @@ export async function evaluateProphecy(
   try {
     parsed = JSON.parse(clean) as { score?: number; reason?: string };
   } catch {
-    parsed = { score: baselineSignalScore(chainData), reason: "Fallback score from deterministic chain signals." };
+    parsed = { score: baselineSignalScore(chainData), reason: "Fallback score from deterministic signals." };
   }
 
   const semanticScore = clampScore(parsed.score ?? baselineSignalScore(chainData));
   const signalScore = baselineSignalScore(chainData);
   const templeBonus = templeActivityBonus(chainData);
+  
+  // Civilization bonus/penalty score based on hard signals
+  let civBonus = 50; // default neutral
+  if (yesterdayCiv && todayCiv) {
+    const popDiff = todayCiv.totalPopulation - yesterdayCiv.totalPopulation;
+    const faithDiff = Number(todayCiv.totalFaith - yesterdayCiv.totalFaith) / 1e6;
+    
+    // Check if prophecy has matching keywords for what actually happened
+    const propLower = prophecyText.toLowerCase();
+    
+    // Match growth
+    if (popDiff > 0 && (propLower.includes("grow") || propLower.includes("rise") || propLower.includes("multiply") || propLower.includes("new"))) {
+      civBonus += 20;
+    }
+    // Match disaster
+    if (popDiff < -5 && (propLower.includes("meteor") || propLower.includes("plague") || propLower.includes("die") || propLower.includes("doom") || propLower.includes("ash") || propLower.includes("strike"))) {
+      civBonus += 25;
+    }
+    // Match faith rise/drop
+    if (faithDiff > 10 && (propLower.includes("devotion") || propLower.includes("belief") || propLower.includes("faith") || propLower.includes("glory"))) {
+      civBonus += 20;
+    }
+    if (faithDiff < -10 && (propLower.includes("void") || propLower.includes("doubt") || propLower.includes("apostasy") || propLower.includes("collapse"))) {
+      civBonus += 20;
+    }
+  }
+  civBonus = clampScore(civBonus);
 
-  // Blend: 65% semantic LLM judgment, 25% chain signals, 10% temple activity bonus
-  const score = clampScore(Math.round(semanticScore * 0.65 + signalScore * 0.25 + templeBonus * 0.10));
+  // Blended score: 50% LLM semantic judgment, 20% chain signals, 10% temple activity, 20% civilization signal matching
+  const score = clampScore(Math.round(semanticScore * 0.50 + signalScore * 0.20 + templeBonus * 0.10 + civBonus * 0.20));
   const reason =
-    (parsed.reason?.slice(0, 160) ??
-    `Hybrid score blended model judgment with chain signals and temple activity.`);
+    (parsed.reason?.slice(0, 240) ??
+    `Hybrid score blended model judgment with chain signals, temple activity, and civilization metrics.`);
 
   const t = chainData.temple;
   const s = chainData.signals;
@@ -57,6 +122,7 @@ export async function evaluateProphecy(
     `model=${semanticScore}`,
     `baseline=${signalScore}`,
     `templeBonus=${templeBonus}`,
+    `civBonus=${civBonus}`,
     `disciples=${t.discipleCount}`,
     `faith=${t.totalFaithUsdy}`,
     `new24h=${t.newDisciples24h}`,
