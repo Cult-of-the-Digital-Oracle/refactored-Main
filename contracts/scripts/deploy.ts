@@ -45,12 +45,23 @@ async function main() {
   const distributorAddr = await distributor.getAddress();
   console.log("BlessingDistributor:", distributorAddr);
 
+  // 4. CivilizationLog
+  const CIV_ENGINE_ADDRESS = process.env.CIV_ENGINE_ADDRESS ?? deployer.address;
+  console.log("Deploying CivilizationLog...");
+  const CivilizationLog = await ethers.getContractFactory("CivilizationLog");
+  const civLog = await CivilizationLog.deploy(CIV_ENGINE_ADDRESS);
+  await civLog.waitForDeployment();
+  const civLogAddr = await civLog.getAddress();
+  console.log("CivilizationLog:", civLogAddr);
+
   console.log("\n── Deployment Summary ─────────────────────");
   console.log(`USDY:                ${usdyAddress}`);
   console.log(`OracleMessage:       ${oracleAddr}`);
   console.log(`TempleVault:         ${vaultAddr}`);
   console.log(`BlessingDistributor: ${distributorAddr}`);
+  console.log(`CivilizationLog:     ${civLogAddr}`);
   console.log(`Oracle EOA:          ${ORACLE_ADDRESS}`);
+  console.log(`CivEngine EOA:       ${CIV_ENGINE_ADDRESS}`);
   console.log("────────────────────────────────────────────");
   console.log("\nCopy these into apps/web/.env.local and agent/.env");
 }
