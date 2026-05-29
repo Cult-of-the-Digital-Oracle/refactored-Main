@@ -14,13 +14,25 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "viem": "^2.48.11",
-    "wagmi": "^2.19.5"
+    "wagmi": "^2.19.5",
+    "pixi.js": "^8.9.2",
+    "bitecs": "^0.3.40",
+    "fastnoise-lite": "^1.1.1",
+    "pathfinding": "^0.4.18",
+    "comlink": "^4.4.2",
+    "seedrandom": "^3.0.5",
+    "howler": "^2.2.4",
+    "localforage": "^1.10.0",
+    "earcut": "^3.0.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/seedrandom": "^3.0.8",
+    "@types/howler": "^2.2.12",
+    "@types/earcut": "^2.1.4",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
