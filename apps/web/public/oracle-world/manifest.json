@@ -1,0 +1,1010 @@
+{
+  "generated": "2026-05-27T14:40:07.590Z",
+  "spriteSize": 64,
+  "tileSize": 16,
+  "atlases": {
+    "units": {
+      "file": "units.webp",
+      "width": 1024,
+      "height": 192
+    },
+    "buildings": {
+      "file": "buildings.webp",
+      "width": 1024,
+      "height": 320
+    },
+    "vfx": {
+      "file": "vfx.webp",
+      "width": 512,
+      "height": 64
+    },
+    "env": {
+      "file": "env.webp",
+      "width": 704,
+      "height": 80,
+      "tileRowsHeight": 16
+    }
+  },
+  "frames": {
+    "elf_villager": {
+      "atlas": "units",
+      "x": 0,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "elf_ranger": {
+      "atlas": "units",
+      "x": 64,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "elf_druid": {
+      "atlas": "units",
+      "x": 128,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "elf_spellblade": {
+      "atlas": "units",
+      "x": 192,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "elf_high_lord": {
+      "atlas": "units",
+      "x": 256,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "elf_princess": {
+      "atlas": "units",
+      "x": 320,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "elf_assasin": {
+      "atlas": "units",
+      "x": 384,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "elf_healer": {
+      "atlas": "units",
+      "x": 448,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "elf_weaver": {
+      "atlas": "units",
+      "x": 512,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "elf_treant": {
+      "atlas": "units",
+      "x": 576,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "human_villager": {
+      "atlas": "units",
+      "x": 640,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "human_knight": {
+      "atlas": "units",
+      "x": 704,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "human_archer": {
+      "atlas": "units",
+      "x": 768,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "human_mage": {
+      "atlas": "units",
+      "x": 832,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "human_king": {
+      "atlas": "units",
+      "x": 896,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "human_queen": {
+      "atlas": "units",
+      "x": 960,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "human_ninja": {
+      "atlas": "units",
+      "x": 0,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "human_priest": {
+      "atlas": "units",
+      "x": 64,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "human_farmer": {
+      "atlas": "units",
+      "x": 128,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "human_general": {
+      "atlas": "units",
+      "x": 192,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "orc_peon": {
+      "atlas": "units",
+      "x": 256,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "orc_grunt": {
+      "atlas": "units",
+      "x": 320,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "orc_troll": {
+      "atlas": "units",
+      "x": 384,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "orc_shaman": {
+      "atlas": "units",
+      "x": 448,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "orc_warchief": {
+      "atlas": "units",
+      "x": 512,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "orc_wolf_rider": {
+      "atlas": "units",
+      "x": 576,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "orc_berserker": {
+      "atlas": "units",
+      "x": 640,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "orc_hunter": {
+      "atlas": "units",
+      "x": 704,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "orc_brute": {
+      "atlas": "units",
+      "x": 768,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "orc_drummer": {
+      "atlas": "units",
+      "x": 832,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "land_cat": {
+      "atlas": "units",
+      "x": 896,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "land_dog": {
+      "atlas": "units",
+      "x": 960,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "land_cow": {
+      "atlas": "units",
+      "x": 0,
+      "y": 128,
+      "w": 64,
+      "h": 64
+    },
+    "land_sheep": {
+      "atlas": "units",
+      "x": 64,
+      "y": 128,
+      "w": 64,
+      "h": 64
+    },
+    "land_wolf": {
+      "atlas": "units",
+      "x": 128,
+      "y": 128,
+      "w": 64,
+      "h": 64
+    },
+    "land_bear": {
+      "atlas": "units",
+      "x": 192,
+      "y": 128,
+      "w": 64,
+      "h": 64
+    },
+    "water_fish": {
+      "atlas": "units",
+      "x": 256,
+      "y": 128,
+      "w": 64,
+      "h": 64
+    },
+    "water_crab": {
+      "atlas": "units",
+      "x": 320,
+      "y": 128,
+      "w": 64,
+      "h": 64
+    },
+    "water_turtle": {
+      "atlas": "units",
+      "x": 384,
+      "y": 128,
+      "w": 64,
+      "h": 64
+    },
+    "water_shark": {
+      "atlas": "units",
+      "x": 448,
+      "y": 128,
+      "w": 64,
+      "h": 64
+    },
+    "water_dolphin": {
+      "atlas": "units",
+      "x": 512,
+      "y": 128,
+      "w": 64,
+      "h": 64
+    },
+    "water_kraken": {
+      "atlas": "units",
+      "x": 576,
+      "y": 128,
+      "w": 64,
+      "h": 64
+    },
+    "elf_magic_lantern": {
+      "atlas": "buildings",
+      "x": 0,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "elf_leaf_tent": {
+      "atlas": "buildings",
+      "x": 64,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "elf_small_treehouse": {
+      "atlas": "buildings",
+      "x": 128,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "elf_berry_farm": {
+      "atlas": "buildings",
+      "x": 192,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "elf_lotus_pond": {
+      "atlas": "buildings",
+      "x": 256,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "elf_moonwell": {
+      "atlas": "buildings",
+      "x": 320,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "elf_crystal_tower": {
+      "atlas": "buildings",
+      "x": 384,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "elf_archery_range": {
+      "atlas": "buildings",
+      "x": 448,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "elf_swan_boat": {
+      "atlas": "buildings",
+      "x": 512,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "elf_grand_tree_palace": {
+      "atlas": "buildings",
+      "x": 576,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "elf_mana_loom": {
+      "atlas": "buildings",
+      "x": 640,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "elf_crystal_mine": {
+      "atlas": "buildings",
+      "x": 704,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "elf_solarpunk_greenhouse": {
+      "atlas": "buildings",
+      "x": 768,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "elf_luminescent_apt": {
+      "atlas": "buildings",
+      "x": 832,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "elf_nature_bastion": {
+      "atlas": "buildings",
+      "x": 896,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "elf_wind_spire": {
+      "atlas": "buildings",
+      "x": 960,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "elf_star_observatory": {
+      "atlas": "buildings",
+      "x": 0,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "elf_aether_pump": {
+      "atlas": "buildings",
+      "x": 64,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "elf_solar_matrix": {
+      "atlas": "buildings",
+      "x": 128,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "elf_bio_spire": {
+      "atlas": "buildings",
+      "x": 192,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "human_campfire": {
+      "atlas": "buildings",
+      "x": 256,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "human_hunting_tent": {
+      "atlas": "buildings",
+      "x": 320,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "human_wood_hut": {
+      "atlas": "buildings",
+      "x": 384,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "human_wheat_farm": {
+      "atlas": "buildings",
+      "x": 448,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "human_fish_pond": {
+      "atlas": "buildings",
+      "x": 512,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "human_windmill": {
+      "atlas": "buildings",
+      "x": 576,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "human_watchtower": {
+      "atlas": "buildings",
+      "x": 640,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "human_barracks": {
+      "atlas": "buildings",
+      "x": 704,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "human_shipyard": {
+      "atlas": "buildings",
+      "x": 768,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "human_castle": {
+      "atlas": "buildings",
+      "x": 832,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "human_brick_factory": {
+      "atlas": "buildings",
+      "x": 896,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "human_iron_factory": {
+      "atlas": "buildings",
+      "x": 960,
+      "y": 64,
+      "w": 64,
+      "h": 64
+    },
+    "human_eco_greenhouse": {
+      "atlas": "buildings",
+      "x": 0,
+      "y": 128,
+      "w": 64,
+      "h": 64
+    },
+    "human_concrete_apartment": {
+      "atlas": "buildings",
+      "x": 64,
+      "y": 128,
+      "w": 64,
+      "h": 64
+    },
+    "human_brutalist_bunker": {
+      "atlas": "buildings",
+      "x": 128,
+      "y": 128,
+      "w": 64,
+      "h": 64
+    },
+    "human_vertical_garden": {
+      "atlas": "buildings",
+      "x": 192,
+      "y": 128,
+      "w": 64,
+      "h": 64
+    },
+    "human_radio_tower": {
+      "atlas": "buildings",
+      "x": 256,
+      "y": 128,
+      "w": 64,
+      "h": 64
+    },
+    "human_oil_pump": {
+      "atlas": "buildings",
+      "x": 320,
+      "y": 128,
+      "w": 64,
+      "h": 64
+    },
+    "human_solar_array": {
+      "atlas": "buildings",
+      "x": 384,
+      "y": 128,
+      "w": 64,
+      "h": 64
+    },
+    "human_glass_skyscraper": {
+      "atlas": "buildings",
+      "x": 448,
+      "y": 128,
+      "w": 64,
+      "h": 64
+    },
+    "orc_skull_bonfire": {
+      "atlas": "buildings",
+      "x": 512,
+      "y": 128,
+      "w": 64,
+      "h": 64
+    },
+    "orc_hide_tent": {
+      "atlas": "buildings",
+      "x": 576,
+      "y": 128,
+      "w": 64,
+      "h": 64
+    },
+    "orc_mud_hut": {
+      "atlas": "buildings",
+      "x": 640,
+      "y": 128,
+      "w": 64,
+      "h": 64
+    },
+    "orc_boar_pen": {
+      "atlas": "buildings",
+      "x": 704,
+      "y": 128,
+      "w": 64,
+      "h": 64
+    },
+    "orc_swamp_fishery": {
+      "atlas": "buildings",
+      "x": 768,
+      "y": 128,
+      "w": 64,
+      "h": 64
+    },
+    "orc_lumber_camp": {
+      "atlas": "buildings",
+      "x": 832,
+      "y": 128,
+      "w": 64,
+      "h": 64
+    },
+    "orc_spike_tower": {
+      "atlas": "buildings",
+      "x": 896,
+      "y": 128,
+      "w": 64,
+      "h": 64
+    },
+    "orc_fighting_pit": {
+      "atlas": "buildings",
+      "x": 960,
+      "y": 128,
+      "w": 64,
+      "h": 64
+    },
+    "orc_war_raft": {
+      "atlas": "buildings",
+      "x": 0,
+      "y": 192,
+      "w": 64,
+      "h": 64
+    },
+    "orc_chieftain_fort": {
+      "atlas": "buildings",
+      "x": 64,
+      "y": 192,
+      "w": 64,
+      "h": 64
+    },
+    "orc_scrap_foundry": {
+      "atlas": "buildings",
+      "x": 128,
+      "y": 192,
+      "w": 64,
+      "h": 64
+    },
+    "orc_slag_pit": {
+      "atlas": "buildings",
+      "x": 192,
+      "y": 192,
+      "w": 64,
+      "h": 64
+    },
+    "orc_ash_furnace": {
+      "atlas": "buildings",
+      "x": 256,
+      "y": 192,
+      "w": 64,
+      "h": 64
+    },
+    "orc_iron_bunker": {
+      "atlas": "buildings",
+      "x": 320,
+      "y": 192,
+      "w": 64,
+      "h": 64
+    },
+    "orc_spiked_bastion": {
+      "atlas": "buildings",
+      "x": 384,
+      "y": 192,
+      "w": 64,
+      "h": 64
+    },
+    "orc_diesel_generator": {
+      "atlas": "buildings",
+      "x": 448,
+      "y": 192,
+      "w": 64,
+      "h": 64
+    },
+    "orc_signal_tower": {
+      "atlas": "buildings",
+      "x": 512,
+      "y": 192,
+      "w": 64,
+      "h": 64
+    },
+    "orc_oil_rig": {
+      "atlas": "buildings",
+      "x": 576,
+      "y": 192,
+      "w": 64,
+      "h": 64
+    },
+    "orc_neon_reactor": {
+      "atlas": "buildings",
+      "x": 640,
+      "y": 192,
+      "w": 64,
+      "h": 64
+    },
+    "orc_cyber_citadel": {
+      "atlas": "buildings",
+      "x": 704,
+      "y": 192,
+      "w": 64,
+      "h": 64
+    },
+    "human_wall": {
+      "atlas": "buildings",
+      "x": 768,
+      "y": 192,
+      "w": 64,
+      "h": 64
+    },
+    "orc_barricade": {
+      "atlas": "buildings",
+      "x": 832,
+      "y": 192,
+      "w": 64,
+      "h": 64
+    },
+    "elf_crystal_fence": {
+      "atlas": "buildings",
+      "x": 896,
+      "y": 192,
+      "w": 64,
+      "h": 64
+    },
+    "hero_monument_human": {
+      "atlas": "buildings",
+      "x": 960,
+      "y": 192,
+      "w": 64,
+      "h": 64
+    },
+    "giant_totem_orc": {
+      "atlas": "buildings",
+      "x": 0,
+      "y": 256,
+      "w": 64,
+      "h": 64
+    },
+    "tree_of_life_elf": {
+      "atlas": "buildings",
+      "x": 64,
+      "y": 256,
+      "w": 64,
+      "h": 64
+    },
+    "human_great_hall_1": {
+      "atlas": "buildings",
+      "x": 128,
+      "y": 256,
+      "w": 64,
+      "h": 64
+    },
+    "human_great_hall_2": {
+      "atlas": "buildings",
+      "x": 192,
+      "y": 256,
+      "w": 64,
+      "h": 64
+    },
+    "orc_great_hall": {
+      "atlas": "buildings",
+      "x": 256,
+      "y": 256,
+      "w": 64,
+      "h": 64
+    },
+    "elf_great_hall": {
+      "atlas": "buildings",
+      "x": 320,
+      "y": 256,
+      "w": 64,
+      "h": 64
+    },
+    "magic_bolt": {
+      "atlas": "vfx",
+      "x": 0,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "meteor_strike": {
+      "atlas": "vfx",
+      "x": 64,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "lightning_strike": {
+      "atlas": "vfx",
+      "x": 128,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "raindrop_particle": {
+      "atlas": "vfx",
+      "x": 192,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "snowflake_particle": {
+      "atlas": "vfx",
+      "x": 256,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "explosion_debris": {
+      "atlas": "vfx",
+      "x": 320,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "arrow_projectile": {
+      "atlas": "vfx",
+      "x": 384,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "axe_projectile": {
+      "atlas": "vfx",
+      "x": 448,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "deep_sea_biome": {
+      "atlas": "env",
+      "x": 0,
+      "y": 0,
+      "w": 16,
+      "h": 16
+    },
+    "shallow_sea_biome": {
+      "atlas": "env",
+      "x": 16,
+      "y": 0,
+      "w": 16,
+      "h": 16
+    },
+    "sand_biome": {
+      "atlas": "env",
+      "x": 32,
+      "y": 0,
+      "w": 16,
+      "h": 16
+    },
+    "sand_biome_2": {
+      "atlas": "env",
+      "x": 48,
+      "y": 0,
+      "w": 16,
+      "h": 16
+    },
+    "sand_biome_3": {
+      "atlas": "env",
+      "x": 64,
+      "y": 0,
+      "w": 16,
+      "h": 16
+    },
+    "grass_biome": {
+      "atlas": "env",
+      "x": 80,
+      "y": 0,
+      "w": 16,
+      "h": 16
+    },
+    "forest_biome": {
+      "atlas": "env",
+      "x": 96,
+      "y": 0,
+      "w": 16,
+      "h": 16
+    },
+    "mountain_biome": {
+      "atlas": "env",
+      "x": 112,
+      "y": 0,
+      "w": 16,
+      "h": 16
+    },
+    "snow_peak_biome": {
+      "atlas": "env",
+      "x": 144,
+      "y": 0,
+      "w": 16,
+      "h": 16
+    },
+    "transport_boat": {
+      "atlas": "env",
+      "x": 0,
+      "y": 16,
+      "w": 64,
+      "h": 64
+    },
+    "wooden_dock": {
+      "atlas": "env",
+      "x": 64,
+      "y": 16,
+      "w": 64,
+      "h": 64
+    },
+    "wooden_dock_2": {
+      "atlas": "env",
+      "x": 128,
+      "y": 16,
+      "w": 64,
+      "h": 64
+    },
+    "oak_tree_1": {
+      "atlas": "env",
+      "x": 192,
+      "y": 16,
+      "w": 64,
+      "h": 64
+    },
+    "oak_tree_2": {
+      "atlas": "env",
+      "x": 256,
+      "y": 16,
+      "w": 64,
+      "h": 64
+    },
+    "pine_tree": {
+      "atlas": "env",
+      "x": 320,
+      "y": 16,
+      "w": 64,
+      "h": 64
+    },
+    "birch_tree": {
+      "atlas": "env",
+      "x": 384,
+      "y": 16,
+      "w": 64,
+      "h": 64
+    },
+    "dead_tree_1": {
+      "atlas": "env",
+      "x": 448,
+      "y": 16,
+      "w": 64,
+      "h": 64
+    },
+    "dead_tree_2": {
+      "atlas": "env",
+      "x": 512,
+      "y": 16,
+      "w": 64,
+      "h": 64
+    },
+    "tall_grass_1": {
+      "atlas": "env",
+      "x": 576,
+      "y": 16,
+      "w": 64,
+      "h": 64
+    },
+    "tall_grass_2": {
+      "atlas": "env",
+      "x": 640,
+      "y": 16,
+      "w": 64,
+      "h": 64
+    }
+  }
+}
