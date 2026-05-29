@@ -85,6 +85,10 @@ export default function OracleWorldPage() {
   // Hero NPCs derived from on-chain Disciples
   const [disciples, setDisciples] = useState<HeroDisciple[]>([]);
 
+  // Weather selector — cycles none → rain → snow → none on click
+  const [weather, setWeather] = useState<'none' | 'rain' | 'snow'>('none');
+  const cycleWeather = () => setWeather(w => w === 'none' ? 'rain' : w === 'rain' ? 'snow' : 'none');
+
   // UI state toggles
   const [isMounted, setIsMounted] = useState(false);
   const [showSandbox, setShowSandbox] = useState(false);
@@ -376,6 +380,7 @@ export default function OracleWorldPage() {
         biomeGrid={biomeGrid}
         visualEvents={visualEvents}
         disciples={disciples}
+        weather={weather}
         onHoverEntity={setHoveredEntity}
         onHoverRegion={setHoveredRegion}
         onHoverDisciple={setHoveredDisciple}
@@ -464,7 +469,16 @@ export default function OracleWorldPage() {
                 🔮 DEMIURGE
               </PixelFrame>
             </button>
-            <button 
+            <button
+              onClick={cycleWeather}
+              className="pointer-events-auto active:translate-y-0.5 transition-all cursor-pointer"
+              title="Cycle weather: clear → rain → snow"
+            >
+              <PixelFrame className={`${weather !== 'none' ? 'bg-[#00ffff]/10 text-[#00ffff]' : 'bg-[#0f1118]/80 text-stone-500'} px-2.5 py-1.5 text-[9px] font-bold tracking-widest uppercase`} thickness={2}>
+                {weather === 'rain' ? '🌧️ RAIN' : weather === 'snow' ? '❄️ SNOW' : '☀️ CLEAR'}
+              </PixelFrame>
+            </button>
+            <button
               onClick={() => setShowSandbox(p => !p)}
               className="pointer-events-auto active:translate-y-0.5 transition-all cursor-pointer"
             >
