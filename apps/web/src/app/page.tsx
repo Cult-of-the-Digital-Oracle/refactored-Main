@@ -88,7 +88,10 @@ export default function Home() {
           <Step marker="04" title="Earn & Rank" body="Claim USDY yield, climb the leaderboard" />
         </div>
 
-        <div className="mt-3 flex justify-center gap-3">
+        <div className="mt-3 flex justify-center flex-wrap gap-3">
+          <a href="/oracle-world" className="pixel-button inline-flex min-h-9 items-center px-4 py-2 text-lg uppercase tracking-[0.1em] shadow-[0_0_10px_rgba(200,168,75,0.4)]">
+            👁️ Oracle Civilization
+          </a>
           <a href="/prophecies" className="pixel-button pixel-button-dark inline-flex min-h-9 items-center px-4 py-2 text-lg uppercase tracking-[0.1em]">
             Prophecy Archive
           </a>
