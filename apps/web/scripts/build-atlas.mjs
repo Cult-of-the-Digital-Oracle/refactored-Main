@@ -82,20 +82,40 @@ function spriteName(file) {
   return s;
 }
 
-// Chroma-key: remove pure-ish green background → alpha 0
+// Smart chroma-key: sample the 4 corners, identify a uniform background
+// colour (green chroma OR near-black VFX backdrop OR anything else uniform),
+// then erase all pixels within ±tol of that colour. Falls back to the legacy
+// "remove pure-ish green" pass if corners disagree.
 async function chromaCrop(buf) {
   const img = sharp(buf).ensureAlpha();
   const { data, info } = await img.raw().toBuffer({ resolveWithObject: true });
+  const W = info.width, H = info.height, len = data.length;
   const out = Buffer.from(data);
-  const len = out.length;
-  for (let i = 0; i < len; i += 4) {
-    const r = out[i], g = out[i + 1], b = out[i + 2];
-    // Pure-ish green: g dominant, r and b much lower
-    if (g > 150 && g > r + 40 && g > b + 40) {
-      out[i + 3] = 0;
+  const corners = [0, (W - 1) * 4, (H - 1) * W * 4, ((H - 1) * W + (W - 1)) * 4];
+  const cr = corners.map(c => out[c]);
+  const cg = corners.map(c => out[c + 1]);
+  const cb = corners.map(c => out[c + 2]);
+  const dist = (i, j) =>
+    Math.abs(cr[i] - cr[j]) + Math.abs(cg[i] - cg[j]) + Math.abs(cb[i] - cb[j]);
+  const cornersAgree = dist(0, 1) < 24 && dist(0, 2) < 24 && dist(0, 3) < 24;
+  if (cornersAgree) {
+    const br = cr[0], bg = cg[0], bb = cb[0];
+    const isDark = br + bg + bb < 90;
+    const tol = isDark ? 32 : 48;
+    for (let i = 0; i < len; i += 4) {
+      if (Math.abs(out[i] - br) <= tol &&
+          Math.abs(out[i + 1] - bg) <= tol &&
+          Math.abs(out[i + 2] - bb) <= tol) {
+        out[i + 3] = 0;
+      }
+    }
+  } else {
+    for (let i = 0; i < len; i += 4) {
+      const r = out[i], g = out[i + 1], b = out[i + 2];
+      if (g > 150 && g > r + 40 && g > b + 40) out[i + 3] = 0;
     }
   }
-  return sharp(out, { raw: { width: info.width, height: info.height, channels: 4 } })
+  return sharp(out, { raw: { width: W, height: H, channels: 4 } })
     .png({ compressionLevel: 0 })
     .toBuffer();
 }
