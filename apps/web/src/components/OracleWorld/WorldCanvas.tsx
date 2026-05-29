@@ -35,6 +35,7 @@ interface WorldCanvasProps {
   biomeGrid: Uint8Array | null;
   visualEvents: SimDivineEvent[];
   disciples: HeroDisciple[];
+  weather: 'none' | 'rain' | 'snow';
   onHoverEntity: (entity: SimEntity | null) => void;
   onHoverRegion: (region: SimRegion | null) => void;
   onHoverDisciple: (d: HeroDisciple | null) => void;
@@ -90,6 +91,12 @@ export default function WorldCanvas(props: WorldCanvasProps) {
 
   // Water shimmer particles (white ripples on shallow_sea)
   const wavesRef = useRef<Array<{ g: Graphics; life: number; max: number }>>([]);
+
+  // Full-screen day/night tint overlay (added to app.stage so it doesn't pan with camera)
+  const dayNightOverlayRef = useRef<Graphics | null>(null);
+
+  // Weather particles (rain/snow). Pool of sprite + velocity records.
+  const weatherParticlesRef = useRef<Array<{ s: Sprite; vx: number; vy: number; sway: number }>>([]);
 
   // Hero NPCs (Disciple wallets) — keyed by tokenId so adds/removes are cheap
   const heroSpritesRef = useRef<Map<number, { sprite: Sprite; glow: Graphics; label: Text; data: HeroDisciple }>>(new Map());
@@ -166,6 +173,13 @@ export default function WorldCanvas(props: WorldCanvasProps) {
       worldContainer.scale.set(initialScale);
       worldContainer.x = window.innerWidth / 2 - (WORLD_PX / 2) * initialScale;
       worldContainer.y = window.innerHeight / 2 - (WORLD_PX / 2) * initialScale;
+
+      // Day/night tint overlay — sits on stage above world container, below
+      // any HUD (HUD is DOM-positioned outside the canvas so unaffected).
+      const dayNight = new Graphics();
+      dayNight.eventMode = 'none';
+      app.stage.addChild(dayNight);
+      dayNightOverlayRef.current = dayNight;
 
       // Per-frame render loop
       app.ticker.add(renderTick);
@@ -399,6 +413,12 @@ export default function WorldCanvas(props: WorldCanvasProps) {
 
     // Biome tile overlay — adds biome-textured tiles in viewport at close zoom
     updateBiomeOverlay(vL, vR, vT, vB, scale);
+
+    // Day/night cycle tint
+    updateDayNightOverlay(now);
+
+    // Weather particles (rain / snow)
+    updateWeather(now, vL, vR, vT, vB);
 
     // Animate active projectiles
     updateProjectiles();
@@ -662,66 +682,237 @@ export default function WorldCanvas(props: WorldCanvasProps) {
   }
 
   // ------ VFX ANIMATIONS ----------
+  // ── Cinematic meteor strike ─────────────────────────────────────────────
+  // Phases: warning shadow + ring → meteor descends with fire trail → bright
+  // impact flash + 3-tier shockwave rings → debris + smoke column + screen
+  // flash + camera shake. ~3 sec total runtime.
   function animateMeteor(targetX: number, targetY: number) {
     const app = appRef.current, vfx = vfxLayerRef.current;
     if (!app || !vfx) return;
-    const tex = getTexture(VFX.METEOR);
-    const m = new Sprite(tex);
-    m.anchor.set(0.5);
-    m.scale.set(2.5);
-    m.x = targetX - 600;
-    m.y = targetY - 800;
-    m.zIndex = 99999;
-    vfx.addChild(m);
-    const speed = 35;
-    const dx = targetX - m.x, dy = targetY - m.y;
-    const dist = Math.hypot(dx, dy);
-    const vx = (dx / dist) * speed, vy = (dy / dist) * speed;
-    m.rotation = Math.atan2(vy, vx) + Math.PI / 4;
-    const fall = () => {
-      m.x += vx; m.y += vy;
-      if (m.y >= targetY) {
-        app.ticker.remove(fall);
-        m.destroy();
+
+    // Warning: shadow ellipse on ground + pulsing red ring
+    const shadow = new Graphics();
+    shadow.ellipse(0, 0, 50, 18).fill({ color: 0x000000, alpha: 0.5 });
+    shadow.x = targetX; shadow.y = targetY;
+    shadow.scale.set(0);
+    shadow.zIndex = 1;
+    vfx.addChild(shadow);
+
+    const ring = new Graphics();
+    ring.circle(0, 0, 40).stroke({ color: 0xff3030, width: 3, alpha: 0.9 });
+    ring.x = targetX; ring.y = targetY;
+    ring.scale.set(0.4);
+    vfx.addChild(ring);
+
+    // Meteor sprite — descends at 45°
+    const meteor = new Sprite(getTexture(VFX.METEOR));
+    meteor.anchor.set(0.5);
+    meteor.scale.set(3.5);
+    meteor.x = targetX - 700;
+    meteor.y = targetY - 900;
+    meteor.zIndex = 99999;
+    vfx.addChild(meteor);
+    const startX = meteor.x, startY = meteor.y;
+    meteor.rotation = Math.atan2(targetY - startY, targetX - startX) + Math.PI / 4;
+
+    const trail: Array<{ g: Graphics; life: number; max: number }> = [];
+    const SPARK_COLORS = [0xfff0a0, 0xff8a30, 0xff4500];
+    let frame = 0;
+    const WARN = 28, FALL_END = 56;
+
+    const tick = () => {
+      frame++;
+      // Phase 1: warning grows (frames 1-28)
+      if (frame <= WARN) {
+        const t = frame / WARN;
+        shadow.scale.set(t * 1.8);
+        ring.scale.set(0.4 + t * 1.6);
+        ring.alpha = 0.9 * (1 - t * 0.4);
+      }
+      // Phase 2: meteor descends (frames WARN+1 .. FALL_END)
+      if (frame > WARN && frame <= FALL_END) {
+        const t = (frame - WARN) / (FALL_END - WARN);
+        const ease = t * t;
+        meteor.x = startX + (targetX - startX) * ease;
+        meteor.y = startY + (targetY - startY) * ease;
+        meteor.scale.set(3.5 * (1 - t * 0.25));
+        ring.alpha = Math.max(0, ring.alpha - 0.02);
+        // Spawn 1-2 trail sparks per frame
+        for (let i = 0; i < 2; i++) {
+          const g = new Graphics();
+          const c = SPARK_COLORS[(Math.random() * SPARK_COLORS.length) | 0];
+          g.circle(0, 0, 2 + Math.random() * 3).fill({ color: c });
+          g.x = meteor.x + (Math.random() - 0.5) * 24;
+          g.y = meteor.y + (Math.random() - 0.5) * 24;
+          g.zIndex = 99998;
+          vfx.addChild(g);
+          trail.push({ g, life: 18, max: 18 });
+        }
+      }
+      // Phase 3: impact (frame FALL_END + 1) — spawn flash, shockwaves, debris
+      if (frame === FALL_END + 1) {
+        meteor.visible = false;
+        shadow.visible = false;
+        ring.visible = false;
+        spawnImpactBurst(targetX, targetY);
         animateExplosion(targetX, targetY);
-        triggerScreenShake();
+        animateSmokeColumn(targetX, targetY);
+        triggerScreenShake(18);
+        flashScreen(0xffeeaa, 0.55, 14);
+      }
+      // Fade trail particles
+      for (let i = trail.length - 1; i >= 0; i--) {
+        const t = trail[i];
+        t.life--;
+        t.g.alpha = t.life / t.max;
+        t.g.scale.set(0.85 + (t.life / t.max) * 0.3);
+        if (t.life <= 0) { t.g.destroy(); trail.splice(i, 1); }
+      }
+      if (frame > FALL_END + 20 && trail.length === 0) {
+        meteor.destroy(); shadow.destroy(); ring.destroy();
+        app.ticker.remove(tick);
       }
     };
-    app.ticker.add(fall);
+    app.ticker.add(tick);
   }
 
+  // Bright impact flash + 3-tier coloured shockwave rings
+  function spawnImpactBurst(x: number, y: number) {
+    const app = appRef.current, vfx = vfxLayerRef.current;
+    if (!app || !vfx) return;
+    const flash = new Graphics();
+    flash.circle(0, 0, 60).fill({ color: 0xffffff, alpha: 0.95 });
+    flash.x = x; flash.y = y; flash.zIndex = 99997;
+    vfx.addChild(flash);
+    const rings: Array<{ g: Graphics; speed: number; color: number }> = [
+      { g: new Graphics(), speed: 14, color: 0xfff0a0 },
+      { g: new Graphics(), speed: 10, color: 0xff7020 },
+      { g: new Graphics(), speed: 6,  color: 0x8b2020 },
+    ];
+    for (const r of rings) {
+      r.g.circle(0, 0, 8).stroke({ color: r.color, width: 5, alpha: 0.85 });
+      r.g.x = x; r.g.y = y; r.g.zIndex = 99996;
+      vfx.addChild(r.g);
+    }
+    let f = 0;
+    const tick = () => {
+      f++;
+      flash.scale.set(1 + f * 0.4);
+      flash.alpha = Math.max(0, 0.95 - f * 0.08);
+      for (const r of rings) {
+        r.g.scale.set(1 + f * r.speed * 0.18);
+        r.g.alpha = Math.max(0, 0.85 - f * 0.025);
+      }
+      if (f > 36) {
+        flash.destroy();
+        for (const r of rings) r.g.destroy();
+        app.ticker.remove(tick);
+      }
+    };
+    app.ticker.add(tick);
+  }
+
+  // Dark smoke column rising after a meteor / big explosion. ~3 sec.
+  function animateSmokeColumn(x: number, y: number) {
+    const app = appRef.current, vfx = vfxLayerRef.current;
+    if (!app || !vfx) return;
+    const SMOKE: Array<{ g: Graphics; vx: number; vy: number; life: number; max: number }> = [];
+    let spawnedFor = 0;
+    const tick = () => {
+      spawnedFor++;
+      // Emit 2-3 smoke puffs per frame for first 40 frames
+      if (spawnedFor < 40) {
+        for (let i = 0; i < 3; i++) {
+          const g = new Graphics();
+          const shade = 0x3a3530 + ((Math.random() * 0x10) | 0) * 0x010101;
+          g.circle(0, 0, 8 + Math.random() * 14).fill({ color: shade, alpha: 0.55 });
+          g.x = x + (Math.random() - 0.5) * 60;
+          g.y = y - 10 + (Math.random() - 0.5) * 20;
+          g.zIndex = 99500;
+          vfx.addChild(g);
+          SMOKE.push({
+            g,
+            vx: (Math.random() - 0.5) * 0.4,
+            vy: -0.8 - Math.random() * 0.7,
+            life: 90 + Math.random() * 30,
+            max: 90,
+          });
+        }
+      }
+      for (let i = SMOKE.length - 1; i >= 0; i--) {
+        const s = SMOKE[i];
+        s.g.x += s.vx;
+        s.g.y += s.vy;
+        s.vy *= 0.99;
+        s.life--;
+        const t = s.life / s.max;
+        s.g.alpha = Math.max(0, t * 0.55);
+        s.g.scale.set(1 + (1 - t) * 0.8);
+        if (s.life <= 0) { s.g.destroy(); SMOKE.splice(i, 1); }
+      }
+      if (spawnedFor > 40 && SMOKE.length === 0) app.ticker.remove(tick);
+    };
+    app.ticker.add(tick);
+  }
+
+  // ── Layered debris explosion (used standalone or by meteor) ─────────────
   function animateExplosion(x: number, y: number) {
     const app = appRef.current, vfx = vfxLayerRef.current;
     if (!app || !vfx) return;
     const tex = getTexture(VFX.EXPLOSION);
-    const particles: Array<{ s: Sprite; vx: number; vy: number; life: number }> = [];
-    for (let i = 0; i < 50; i++) {
+    const debris: Array<{ s: Sprite; vx: number; vy: number; rot: number; life: number }> = [];
+    for (let i = 0; i < 55; i++) {
       const s = new Sprite(tex);
       s.anchor.set(0.5);
       s.x = x; s.y = y;
-      s.scale.set(0.25 + Math.random() * 0.35);
+      s.scale.set(0.22 + Math.random() * 0.45);
       s.rotation = Math.random() * Math.PI * 2;
+      s.zIndex = 99500;
       const ang = Math.random() * Math.PI * 2;
-      const spd = Math.random() * 18 + 4;
+      const spd = 5 + Math.random() * 20;
       vfx.addChild(s);
-      particles.push({ s, vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd, life: 40 });
+      debris.push({
+        s,
+        vx: Math.cos(ang) * spd,
+        vy: Math.sin(ang) * spd - 4, // initial upward bias
+        rot: (Math.random() - 0.5) * 0.4,
+        life: 50,
+      });
     }
-    const animate = () => {
+    const tick = () => {
       let any = false;
-      for (const p of particles) {
+      for (const p of debris) {
         if (p.life <= 0) continue;
         any = true;
         p.s.x += p.vx;
         p.s.y += p.vy;
-        p.vy += 0.5;
-        p.s.alpha -= 0.025;
-        p.s.rotation += 0.1;
+        p.vy += 0.55;       // gravity
+        p.vx *= 0.985;      // air drag
+        p.s.rotation += p.rot;
+        p.s.alpha = Math.max(0, p.life / 50);
         p.life--;
         if (p.life <= 0) p.s.destroy();
       }
-      if (!any) app.ticker.remove(animate);
+      if (!any) app.ticker.remove(tick);
     };
-    app.ticker.add(animate);
+    app.ticker.add(tick);
+  }
+
+  // Full-screen colour wash — used as a flash punctuation for big events.
+  function flashScreen(color: number, peakAlpha: number, frames: number) {
+    const app = appRef.current;
+    if (!app) return;
+    const g = new Graphics();
+    g.rect(0, 0, app.screen.width, app.screen.height).fill({ color, alpha: 1 });
+    g.alpha = peakAlpha;
+    app.stage.addChild(g);
+    let f = 0;
+    const tick = () => {
+      f++;
+      g.alpha = peakAlpha * Math.max(0, 1 - f / frames);
+      if (f >= frames) { g.destroy(); app.ticker.remove(tick); }
+    };
+    app.ticker.add(tick);
   }
 
   // -------- Helpers used in renderTick --------
@@ -809,6 +1000,107 @@ export default function WorldCanvas(props: WorldCanvasProps) {
     }
   }
 
+  // ── Weather (rain / snow) ────────────────────────────────────────────────
+  // Particles spawn in viewport area above-the-fold and fall through. Rain is
+  // straight + fast with a slight slant; snow is slow + wavy. When the prop
+  // toggles to 'none', existing particles fade out and pool empties.
+  function updateWeather(now: number, vL: number, vR: number, vT: number, vB: number) {
+    const vfx = vfxLayerRef.current;
+    if (!vfx) return;
+    const pool = weatherParticlesRef.current;
+    const mode = props.weather;
+
+    if (mode === 'none') {
+      // Despawn all existing
+      for (const p of pool) p.s.destroy();
+      pool.length = 0;
+      return;
+    }
+
+    const TARGET = mode === 'rain' ? 180 : 110;
+    const tex = mode === 'rain' ? getTexture(VFX.RAIN) : getTexture(VFX.SNOW);
+    const baseScale = mode === 'rain' ? 0.25 : 0.32;
+    const fallSpeed = mode === 'rain' ? 14 : 2.2;
+    const slant = mode === 'rain' ? 2.5 : 0;
+
+    // Spawn missing
+    while (pool.length < TARGET) {
+      const s = new Sprite(tex);
+      s.anchor.set(0.5);
+      s.scale.set(baseScale + Math.random() * 0.12);
+      s.alpha = mode === 'rain' ? 0.65 : 0.85;
+      s.x = vL + Math.random() * (vR - vL);
+      s.y = vT - Math.random() * 200;
+      s.zIndex = 90000;
+      vfx.addChild(s);
+      pool.push({
+        s,
+        vx: slant + (Math.random() - 0.5) * 0.5,
+        vy: fallSpeed + Math.random() * 2,
+        sway: Math.random() * Math.PI * 2,
+      });
+    }
+
+    // Animate
+    for (const p of pool) {
+      if (mode === 'snow') {
+        p.sway += 0.04;
+        p.s.x += p.vx + Math.sin(p.sway) * 0.8;
+        p.s.rotation = Math.sin(p.sway) * 0.3;
+      } else {
+        p.s.x += p.vx;
+        p.s.rotation = Math.atan2(p.vy, p.vx);
+      }
+      p.s.y += p.vy;
+      // Recycle when offscreen
+      if (p.s.y > vB + 50 || p.s.x < vL - 100 || p.s.x > vR + 100) {
+        p.s.x = vL + Math.random() * (vR - vL);
+        p.s.y = vT - 30 - Math.random() * 100;
+      }
+    }
+  }
+
+  // ── Day / night cycle ────────────────────────────────────────────────────
+  // 2-minute "day". Stops at midnight indigo → pre-dawn deep blue → dawn pink
+  // → noon clear → dusk amber → twilight purple → night blue → loop.
+  function updateDayNightOverlay(now: number) {
+    const overlay = dayNightOverlayRef.current;
+    const app = appRef.current;
+    if (!overlay || !app) return;
+    const CYCLE_MS = 120_000;            // 2-minute day, sped up for demo
+    const t = (now % CYCLE_MS) / CYCLE_MS; // 0..1
+    // Color stops as [t, r, g, b, alpha]
+    const STOPS: ReadonlyArray<readonly [number, number, number, number, number]> = [
+      [0.00, 16,  20,  55,  0.50],   // midnight
+      [0.18, 28,  38,  78,  0.45],   // pre-dawn
+      [0.25, 200, 110, 100, 0.22],   // dawn
+      [0.30, 230, 180, 130, 0.10],   // morning
+      [0.50, 255, 245, 210, 0.00],   // noon clear
+      [0.68, 255, 150, 80,  0.18],   // late afternoon
+      [0.75, 220, 90,  120, 0.28],   // dusk
+      [0.83, 90,  60,  140, 0.40],   // twilight
+      [0.92, 35,  45,  95,  0.46],   // night
+      [1.00, 16,  20,  55,  0.50],   // back to midnight
+    ];
+    let r = 0, g = 0, b = 0, a = 0;
+    for (let i = 0; i < STOPS.length - 1; i++) {
+      const s0 = STOPS[i], s1 = STOPS[i + 1];
+      if (t >= s0[0] && t <= s1[0]) {
+        const span = s1[0] - s0[0];
+        const u = span > 0 ? (t - s0[0]) / span : 0;
+        r = s0[1] + (s1[1] - s0[1]) * u;
+        g = s0[2] + (s1[2] - s0[2]) * u;
+        b = s0[3] + (s1[3] - s0[3]) * u;
+        a = s0[4] + (s1[4] - s0[4]) * u;
+        break;
+      }
+    }
+    const color = ((r | 0) << 16) | ((g | 0) << 8) | (b | 0);
+    overlay.clear();
+    overlay.rect(0, 0, app.screen.width, app.screen.height)
+      .fill({ color, alpha: a });
+  }
+
   // Biome tile overlay — adds proper biome textures over the base color map.
   // Only active at zoom >= 1.5 (close-up). Viewport-culled, sprite-pooled.
   function updateBiomeOverlay(vL: number, vR: number, vT: number, vB: number, scale: number) {
@@ -850,67 +1142,175 @@ export default function WorldCanvas(props: WorldCanvasProps) {
     for (let i = used; i < pool.length; i++) pool[i].visible = false;
   }
 
+  // ── Cinematic blessing rain: golden sky-beam + sparkle star particles +
+  //    ground halo. ~2.5 sec.
   function animateBlessing(x: number, y: number) {
     const app = appRef.current, vfx = vfxLayerRef.current;
     if (!app || !vfx) return;
-    const sprites: Array<{ g: Graphics; life: number }> = [];
-    for (let i = 0; i < 24; i++) {
-      const g = new Graphics();
-      g.circle(0, 0, 3 + Math.random() * 3).fill({ color: 0x39ff14 });
-      g.x = x + (Math.random() - 0.5) * 600;
-      g.y = y - 400 - Math.random() * 200;
-      vfx.addChild(g);
-      sprites.push({ g, life: 60 + Math.random() * 30 });
-    }
-    const animate = () => {
-      let any = false;
-      for (const p of sprites) {
-        if (p.life <= 0) continue;
-        any = true;
-        p.g.y += 4;
-        p.g.alpha = Math.min(1, p.life / 30);
-        p.life--;
-        if (p.life <= 0) p.g.destroy();
+
+    // Sky beam descending column (golden gradient look approximated with stacked rects)
+    const beam = new Graphics();
+    beam.rect(-50, -700, 100, 700)
+      .fill({ color: 0xffe066, alpha: 0.0 });
+    beam.x = x; beam.y = y; beam.zIndex = 99000;
+    vfx.addChild(beam);
+
+    // Ground halo expanding circle
+    const halo = new Graphics();
+    halo.circle(0, 0, 30).fill({ color: 0xffe066, alpha: 0.5 });
+    halo.x = x; halo.y = y; halo.zIndex = 98900;
+    vfx.addChild(halo);
+
+    const sparkles: Array<{ g: Graphics; vy: number; life: number; max: number; spin: number }> = [];
+    let frame = 0;
+    const tick = () => {
+      frame++;
+      // Beam fade in then fade out
+      const beamAlpha = frame < 20 ? frame / 20 : Math.max(0, 1 - (frame - 60) / 30);
+      beam.alpha = beamAlpha * 0.5;
+      // Halo expansion + fade
+      const haloT = frame / 80;
+      halo.scale.set(1 + haloT * 4);
+      halo.alpha = Math.max(0, 0.5 * (1 - haloT));
+      // Spawn sparkles in column (frames 5..70)
+      if (frame > 5 && frame < 70 && sparkles.length < 80) {
+        for (let i = 0; i < 2; i++) {
+          const g = new Graphics();
+          const c = Math.random() < 0.6 ? 0xfff0a0 : 0xffffff;
+          // 4-point star shape using two crossed rects
+          g.rect(-1, -4, 2, 8).rect(-4, -1, 8, 2).fill({ color: c });
+          g.x = x + (Math.random() - 0.5) * 120;
+          g.y = y - 500 - Math.random() * 100;
+          g.zIndex = 99100;
+          vfx.addChild(g);
+          sparkles.push({
+            g,
+            vy: 6 + Math.random() * 3,
+            life: 80,
+            max: 80,
+            spin: (Math.random() - 0.5) * 0.15,
+          });
+        }
       }
-      if (!any) app.ticker.remove(animate);
+      for (let i = sparkles.length - 1; i >= 0; i--) {
+        const p = sparkles[i];
+        p.g.y += p.vy;
+        p.g.rotation += p.spin;
+        p.life--;
+        const t = p.life / p.max;
+        p.g.alpha = Math.min(1, t * 1.4);
+        p.g.scale.set(0.6 + t * 0.6);
+        if (p.g.y >= y + 30 || p.life <= 0) { p.g.destroy(); sparkles.splice(i, 1); }
+      }
+      if (frame > 90 && sparkles.length === 0) {
+        beam.destroy(); halo.destroy(); app.ticker.remove(tick);
+      }
     };
-    app.ticker.add(animate);
+    app.ticker.add(tick);
   }
 
+  // ── Cinematic plague wave: expanding sickly-green dome + rising bone-grey
+  //    wisps + creeping ground tint. ~2 sec.
   function animatePlague(x: number, y: number) {
-    animateFlash(x, y, 0x8800aa);
+    const app = appRef.current, vfx = vfxLayerRef.current;
+    if (!app || !vfx) return;
+
+    // 3 nested expanding domes for depth
+    const domes: Graphics[] = [];
+    for (let i = 0; i < 3; i++) {
+      const g = new Graphics();
+      const c = i === 0 ? 0x6b0080 : i === 1 ? 0x44aa44 : 0x880088;
+      g.circle(0, 0, 20).fill({ color: c, alpha: 0.32 });
+      g.x = x; g.y = y; g.zIndex = 98000 + i;
+      vfx.addChild(g);
+      domes.push(g);
+    }
+
+    const wisps: Array<{ g: Graphics; vy: number; vx: number; life: number; max: number }> = [];
+    let frame = 0;
+    const tick = () => {
+      frame++;
+      // Domes expand at different rates with falling alpha
+      for (let i = 0; i < domes.length; i++) {
+        const scale = 1 + frame * (0.25 - i * 0.06);
+        domes[i].scale.set(scale);
+        domes[i].alpha = Math.max(0, 0.32 * (1 - frame / 90));
+      }
+      // Spawn ghostly wisps rising upward
+      if (frame < 60 && wisps.length < 40 && Math.random() < 0.4) {
+        const g = new Graphics();
+        const c = Math.random() < 0.5 ? 0xaaff88 : 0xc0a0d0;
+        g.circle(0, 0, 4 + Math.random() * 6).fill({ color: c, alpha: 0.6 });
+        g.x = x + (Math.random() - 0.5) * 200;
+        g.y = y + 10;
+        g.zIndex = 98100;
+        vfx.addChild(g);
+        wisps.push({
+          g,
+          vx: (Math.random() - 0.5) * 0.6,
+          vy: -1.2 - Math.random() * 0.8,
+          life: 70,
+          max: 70,
+        });
+      }
+      for (let i = wisps.length - 1; i >= 0; i--) {
+        const w = wisps[i];
+        w.g.x += w.vx;
+        w.g.y += w.vy;
+        w.life--;
+        const t = w.life / w.max;
+        w.g.alpha = Math.max(0, 0.6 * t);
+        w.g.scale.set(1 + (1 - t) * 0.8);
+        if (w.life <= 0) { w.g.destroy(); wisps.splice(i, 1); }
+      }
+      if (frame > 95 && wisps.length === 0) {
+        for (const d of domes) d.destroy();
+        app.ticker.remove(tick);
+      }
+    };
+    app.ticker.add(tick);
   }
 
+  // Generic colored flash burst — used by the misc divine tool fallback.
   function animateFlash(x: number, y: number, color: number) {
     const app = appRef.current, vfx = vfxLayerRef.current;
     if (!app || !vfx) return;
-    const g = new Graphics();
-    g.circle(0, 0, 50).fill({ color, alpha: 0.6 });
-    g.x = x; g.y = y;
-    vfx.addChild(g);
-    let life = 30;
-    const animate = () => {
-      g.scale.set(1 + (30 - life) * 0.4);
-      g.alpha = life / 30;
-      life--;
-      if (life <= 0) { g.destroy(); app.ticker.remove(animate); }
+    const core = new Graphics();
+    core.circle(0, 0, 30).fill({ color, alpha: 0.85 });
+    core.x = x; core.y = y; core.zIndex = 99000;
+    vfx.addChild(core);
+    const ring = new Graphics();
+    ring.circle(0, 0, 15).stroke({ color, width: 4, alpha: 0.9 });
+    ring.x = x; ring.y = y; ring.zIndex = 98900;
+    vfx.addChild(ring);
+    let f = 0;
+    const tick = () => {
+      f++;
+      core.scale.set(1 + f * 0.2);
+      core.alpha = Math.max(0, 0.85 - f * 0.04);
+      ring.scale.set(1 + f * 0.35);
+      ring.alpha = Math.max(0, 0.9 - f * 0.025);
+      if (f > 35) { core.destroy(); ring.destroy(); app.ticker.remove(tick); }
     };
-    app.ticker.add(animate);
+    app.ticker.add(tick);
   }
 
-  function triggerScreenShake() {
+  // Eased screen shake — amplitude decays cubically (more punch up front)
+  function triggerScreenShake(initial: number = 14) {
     const app = appRef.current;
     if (!app) return;
-    let intensity = 12;
     const stage = app.stage;
     const origX = stage.x, origY = stage.y;
+    let frame = 0;
+    const TOTAL = 22;
     const shake = () => {
-      stage.x = origX + (Math.random() - 0.5) * intensity;
-      stage.y = origY + (Math.random() - 0.5) * intensity;
-      intensity -= 0.4;
-      if (intensity <= 0) {
-        stage.x = origX;
-        stage.y = origY;
+      frame++;
+      const t = 1 - frame / TOTAL;
+      const amp = initial * t * t * t;
+      stage.x = origX + (Math.random() - 0.5) * amp;
+      stage.y = origY + (Math.random() - 0.5) * amp;
+      if (frame >= TOTAL) {
+        stage.x = origX; stage.y = origY;
         app.ticker.remove(shake);
       }
     };
