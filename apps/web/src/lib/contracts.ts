@@ -3,6 +3,7 @@ export const CONTRACTS = {
   templeVault: (process.env.NEXT_PUBLIC_TEMPLE_VAULT_ADDRESS ?? "") as `0x${string}`,
   blessingDistributor: (process.env.NEXT_PUBLIC_BLESSING_DISTRIBUTOR_ADDRESS ?? "") as `0x${string}`,
   usdy: (process.env.NEXT_PUBLIC_USDY_ADDRESS ?? "") as `0x${string}`,
+  civilizationLog: (process.env.NEXT_PUBLIC_CIVILIZATION_LOG_ADDRESS ?? "") as `0x${string}`,
 } as const;
 
 export const ORACLE_MESSAGE_ABI = [
@@ -318,5 +319,191 @@ export const ERC20_ABI = [
     stateMutability: "view",
     inputs: [],
     outputs: [{ name: "", type: "uint8" }],
+  },
+] as const;
+
+export const CIVILIZATION_LOG_ABI = [
+  {
+    name: "civEngine",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "address" }],
+  },
+  {
+    name: "totalSnapshotCount",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
+    name: "totalSnapshots",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
+    name: "getSnapshot",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "day", type: "uint256" }],
+    outputs: [
+      {
+        name: "",
+        type: "tuple",
+        components: [
+          { name: "stateHash", type: "bytes32" },
+          { name: "totalEntities", type: "uint32" },
+          { name: "totalPopulation", type: "uint32" },
+          { name: "totalFaith", type: "uint64" },
+          { name: "dominantFaction", type: "uint8" },
+          { name: "activeRegions", type: "uint8" },
+          { name: "snapshotAt", type: "uint64" },
+        ],
+      },
+    ],
+  },
+  {
+    name: "getDivineEvent",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "index", type: "uint256" }],
+    outputs: [
+      {
+        name: "",
+        type: "tuple",
+        components: [
+          { name: "toolId", type: "uint8" },
+          { name: "polarity", type: "uint8" },
+          { name: "executedAt", type: "uint64" },
+          { name: "targetRegion", type: "uint8" },
+          { name: "magnitude", type: "uint32" },
+        ],
+      },
+    ],
+  },
+  {
+    name: "getDivineEventCount",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
+    name: "getLatestPreview",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "tuple",
+        components: [
+          { name: "toolIds", type: "uint8[5]" },
+          { name: "weights", type: "uint8[5]" },
+          { name: "forcedPolarity", type: "uint8" },
+          { name: "decisionAt", type: "uint64" },
+          { name: "scheduledFor", type: "uint64" },
+          { name: "prophecyHash", type: "string" },
+        ],
+      },
+    ],
+  },
+  {
+    name: "postSnapshot",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "day", type: "uint256" },
+      {
+        name: "snap",
+        type: "tuple",
+        components: [
+          { name: "stateHash", type: "bytes32" },
+          { name: "totalEntities", type: "uint32" },
+          { name: "totalPopulation", type: "uint32" },
+          { name: "totalFaith", type: "uint64" },
+          { name: "dominantFaction", type: "uint8" },
+          { name: "activeRegions", type: "uint8" },
+          { name: "snapshotAt", type: "uint64" },
+        ],
+      },
+    ],
+    outputs: [],
+  },
+  {
+    name: "logDivineEvent",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [
+      {
+        name: "ev",
+        type: "tuple",
+        components: [
+          { name: "toolId", type: "uint8" },
+          { name: "polarity", type: "uint8" },
+          { name: "executedAt", type: "uint64" },
+          { name: "targetRegion", type: "uint8" },
+          { name: "magnitude", type: "uint32" },
+        ],
+      },
+    ],
+    outputs: [],
+  },
+  {
+    name: "postDemiurgePreview",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [
+      {
+        name: "preview",
+        type: "tuple",
+        components: [
+          { name: "toolIds", type: "uint8[5]" },
+          { name: "weights", type: "uint8[5]" },
+          { name: "forcedPolarity", type: "uint8" },
+          { name: "decisionAt", type: "uint64" },
+          { name: "scheduledFor", type: "uint64" },
+          { name: "prophecyHash", type: "string" },
+        ],
+      },
+    ],
+    outputs: [],
+  },
+  {
+    name: "SnapshotPosted",
+    type: "event",
+    inputs: [
+      { name: "day", type: "uint256", indexed: true },
+      { name: "stateHash", type: "bytes32", indexed: false },
+      { name: "totalPopulation", type: "uint32", indexed: false },
+      { name: "totalFaith", type: "uint64", indexed: false },
+    ],
+  },
+  {
+    name: "DivineEventLogged",
+    type: "event",
+    inputs: [
+      { name: "eventId", type: "uint256", indexed: true },
+      { name: "toolId", type: "uint8", indexed: false },
+      { name: "polarity", type: "uint8", indexed: false },
+      { name: "executedAt", type: "uint64", indexed: false },
+    ],
+  },
+  {
+    name: "DemiurgePreviewPosted",
+    type: "event",
+    inputs: [
+      { name: "scheduledFor", type: "uint64", indexed: false },
+      { name: "toolIds", type: "uint8[5]", indexed: false },
+      { name: "forcedPolarity", type: "uint8", indexed: false },
+    ],
+  },
+  {
+    name: "CivEngineUpdated",
+    type: "event",
+    inputs: [{ name: "newEngine", type: "address", indexed: true }],
   },
 ] as const;
