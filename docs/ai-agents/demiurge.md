@@ -73,19 +73,19 @@ Same day + same prophecy → same pick, every time. The god is whimsical but aud
 
 ## The divine-tool catalog
 
-Ten tools, indexed `0–9`. **Tools 0–4 are good, 5–9 are evil.** This is the canonical backend catalog (`demiurge/divineTools.ts`), which also defines each tool's effect in the [Civilization Engine](civilization-engine.md) and its cooldown.
+Ten tools, indexed `0–9`. **Tools 0–4 are good, 5–9 are evil.** This is the canonical backend catalog (`demiurge/divineTools.ts`) — id, name, polarity, and cooldown. The exact in-world deltas are applied by the [Civilization Engine](civilization-engine.md), which is authoritative for effects (the column below summarizes them).
 
 | id | Tool | Polarity | Cooldown | Effect on the world |
 |:--:|---|:--:|:--:|---|
 | 0 | **Blessing Rain** | 😇 good | 2 d | +faith & health to all entities, +faith to all regions |
-| 1 | **Harvest Tide** | 😇 good | 3 d | +50% resources all regions, +health |
+| 1 | **Harvest Tide** | 😇 good | 3 d | +50 resources all regions, +health |
 | 2 | **Missionary Wave** | 😇 good | 4 d | Spawn ~20 new believer entities in a region |
 | 3 | **Architect Gift** | 😇 good | 5 d | Found a new settlement + settlers |
 | 4 | **Peace Covenant** | 😇 good | 6 d | Halt faction conflict, boost harmony & karma |
 | 5 | **Meteor Strike** | 💀 evil | 3 d | Kill ~40% of a region's population, drain resources |
 | 6 | **Plague Wave** | 💀 evil | 5 d | Spread health damage across a region + random nodes |
-| 7 | **Drought** | 💀 evil | 4 d | −60% resources all regions, health drain |
-| 8 | **Civil War Seed** | 💀 evil | 7 d | Tension, conflict & damage in the largest region |
+| 7 | **Drought** | 💀 evil | 4 d | −60 resources all regions, health drain |
+| 8 | **Civil War Seed** | 💀 evil | 7 d | Tension, conflict & damage in the target region |
 | 9 | **Apostasy Wave** | 💀 evil | 3 d | −faith to all, convert believers to apostates |
 
 A `CooldownManager` enforces `currentDay − lastUsedDay ≥ cooldownDays`, so the most dramatic tools (Civil War Seed, Peace Covenant) can't be spammed.

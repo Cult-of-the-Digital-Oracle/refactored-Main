@@ -66,7 +66,7 @@ sequenceDiagram
     DM->>CL: postDemiurgePreview(top-5 candidates)
 ```
 
-The numbering matches the comments in `index.ts`. Note the elegant causality: **the Demiurge reads today's prophecy to schedule tomorrow's divine event, and the Evaluator reads the world the Demiurge shaped to judge the prophecy.** The three minds form a closed loop through the chain.
+The diagram follows the same order as `runOracleCycle` in `index.ts` — though the on-screen step numbers don't map 1:1 to the code's numbered comments, since the chain/Temple read sits in an unnumbered section between numbered steps 2 and 3. Note the elegant causality: **the Demiurge reads today's prophecy to schedule tomorrow's divine event, and the Evaluator reads the world the Demiurge shaped to judge the prophecy.** The three minds form a closed loop through the chain.
 
 ***
 

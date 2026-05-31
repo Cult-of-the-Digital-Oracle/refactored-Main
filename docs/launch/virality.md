@@ -18,9 +18,9 @@ This is a **Consumer & Viral DApps** submission. Virality isn't an afterthought 
 
 ## The OG-image engine
 
-The growth loop runs on **dynamic Open Graph images**. `/api/og/disciple/[tokenId]` (a `next/og` edge route) renders a pixel-art card — name, rank, karma, stake — on the fly. When a Disciple shares their link, X/Twitter, Discord, and Telegram unfurl it into a rich card automatically. No design work per share; every Disciple is a billboard.
+The growth loop runs on **dynamic Open Graph images**. `/api/og/disciple/[tokenId]` (a `next/og` edge route) renders a pixel-art card — name, stake, karma, and join date — on the fly. When a Disciple shares their link, X/Twitter, Discord, and Telegram unfurl it into a rich card automatically. No design work per share; every Disciple is a billboard.
 
-The on-chain `recordShare(tokenId, channel)` action rewards sharing with **karma** — so spreading the cult is itself a gameplay loop that climbs the leaderboard.
+The on-chain `recordShare(tokenId, channel)` action rewards sharing with **+3 karma (once per UTC day)** — so spreading the cult is itself a gameplay loop that climbs the leaderboard.
 
 ***
 

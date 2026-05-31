@@ -20,11 +20,11 @@ sequenceDiagram
     participant OM as OracleMessage
     participant BD as BlessingDistributor
 
-    DM->>CL: execute yesterday's scheduled divine event → logDivineEvent
-    DM->>CE: applyDivineTool(toolId)
+    DM->>CE: applyDivineTool(toolId) — execute yesterday's scheduled act
+    DM->>CL: logDivineEvent — record the executed tool on-chain
     CE->>CE: tick() — advance world one day
     CE->>CL: postSnapshot(day, snap)
-    EV->>CH: fetchChainData() — 24h activity + Temple state
+    Note over CH,EV: fetchChainData() — 24h activity + Temple state (feeds both Evaluator and Oracle)
     EV->>CL: read yesterday & today CivSnapshots
     EV->>OM: resolveProphecy(day-1, score, reason, evidence)
     alt score ≥ FULFILLMENT_THRESHOLD (70)

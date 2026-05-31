@@ -85,6 +85,6 @@ title   = TITLES[byte1 % 32];     // "Prophet", "Harbinger", "Revenant"…
 suffix  = SUFFIXES[byte3 % 17];   // "of the Chain", "of the Ledger", "of Mantle"…
 ```
 
-→ e.g. *"The Ashen Keeper"*, *"Void Warden of the Chain"*. The same wallet always renders the same name across the leaderboard, its card, and the temple. `generateDiscipleQuote(address)` similarly picks one of 25 flavor quotes. It's identity theatre with zero gas.
+→ e.g. *"The Ashen Keeper"*, *"The Void Warden of the Chain"*. The same wallet always renders the same name across the leaderboard, its card, and the temple. `generateDiscipleQuote(address)` similarly picks one of 25 flavor quotes. It's identity theatre with zero gas.
 
 → [The Oracle World](oracle-world.md) · [Pixel-Art Asset Pack](pixel-art.md)

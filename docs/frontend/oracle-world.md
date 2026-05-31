@@ -2,7 +2,7 @@
 
 > `apps/web/src/app/oracle-world/page.tsx` + `lib/simulation/*` + `components/OracleWorld/*`
 
-`/oracle-world` is the God Simulator made visible — a real-time, 15,000-entity pixel civilization rendered with PixiJS, simulated in a Web Worker, and **bridged to the on-chain [`CivilizationLog`](../contracts/civilization-log.md)** so the [Demiurge's](../ai-agents/demiurge.md) divine acts play out on screen. It is the most technically ambitious surface in the project and the centerpiece of the live demo.
+`/oracle-world` is the God Simulator made visible — a real-time pixel civilization (up to 15,000 entities) rendered with PixiJS, simulated in a Web Worker, and **bridged to the on-chain [`CivilizationLog`](../contracts/civilization-log.md)** so the [Demiurge's](../ai-agents/demiurge.md) divine acts play out on screen. It is the most technically ambitious surface in the project and the centerpiece of the live demo.
 
 ***
 
@@ -72,8 +72,8 @@ The **simulation runs off the main thread** in a Web Worker (wrapped with Comlin
 The page polls `CivilizationLog` every **15 seconds**:
 
 * `getLatestPreview()` → the Demiurge's five weighted candidate tools, rendered in the Demiurge Sector.
-* `getDivineEventCount()` + `getDivineEvent(i)` → the last 10 divine events; new ones are pushed into the worker via `triggerDivineTool(toolId, regionId)` and into the balance history (polarity `1` good / `0` evil). A cursor (`lastSeenEventCount`) avoids replaying history; `targetRegion == 255` means a random region.
-* `getSnapshot(dayIndex)` → today's aggregate world stats for the HUD.
+* `getDivineEventCount()` + `getDivineEvent(i)` → the last 10 divine events; new ones are pushed into the worker via `triggerDivineTool(toolId, regionId)` and into the balance history (polarity `1` good / `0` evil). A cursor (`lastSeenEventCount`) avoids replaying history; `targetRegion == 255` denotes a global event (all regions), which the visualizer renders on one region for spectacle.
+* `getSnapshot(dayIndex)` → today's on-chain aggregate world stats are fetched, but currently kept only as state — not yet wired into a HUD panel (the visible HUD stats come from the in-browser worker sim). A small follow-up.
 
 Active **Disciples** are polled from `TempleVault` every **30 seconds** and rendered as named "hero" NPCs you can hover.
 
@@ -110,7 +110,7 @@ The divergence on tools **7 and 8** is intentional theming, not a bug: the autho
 
 | Atlas | File | Contents |
 |---|---|---|
-| **units** | `units.webp` | ~30 NPC types (villager, knight, mage, king, orc, elf, fauna…) |
+| **units** | `units.webp` | 42 NPC frames — 10 each of human/orc/elf classes + 6 land fauna + 6 water fauna |
 | **buildings** | `buildings.webp` | 20 building subtypes per race (primitive → modern) + walls, monuments, great halls |
 | **vfx** | `vfx.webp` | 8 effects: magic bolt, meteor, lightning, raindrop, snowflake, explosion, arrow, axe |
 | **env** | `env.webp` | 9 biome tiles + boats, docks, trees, grass |
@@ -122,7 +122,7 @@ The manifest declares **140 frames** at `spriteSize 64` / `tileSize 16`. These a
 ## Known gap (be honest in the demo)
 
 {% hint style="warning" %}
-The prophecy text shown in the `ProphecyOverlay` is currently **hardcoded** (it alternates on `dayIndex % 2`), not read from `OracleMessage`. The *divine events*, *previews*, *balance*, and *snapshots* in the Oracle World **are** live on-chain reads. The live prophecy itself is shown on the landing page (`/`) and archive (`/prophecies`). Wiring the overlay to `OracleMessage.todaysProphecy` is a small, high-value follow-up.
+The prophecy text shown in the `ProphecyOverlay` is currently **hardcoded** (it alternates on `dayIndex % 2`), not read from `OracleMessage`. The *divine events*, *previews*, and *balance* in the Oracle World **are** live on-chain reads (the daily *snapshot* is fetched too, though not yet surfaced in the HUD). The live prophecy itself is shown on the landing page (`/`) and archive (`/prophecies`). Wiring the overlay to `OracleMessage.todaysProphecy` is a small, high-value follow-up.
 {% endhint %}
 
 ***

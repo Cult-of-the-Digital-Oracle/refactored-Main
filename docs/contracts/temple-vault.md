@@ -15,7 +15,7 @@ contract TempleVault is ERC721, Ownable
 ```solidity
 struct Disciple {
     address disciple;    // slot 0: bytes  0-19
-    uint88  stakeAmount; // slot 0: bytes 20-30   (≈309T USDY @ 6 decimals)
+    uint88  stakeAmount; // slot 0: bytes 20-30   (~309 quintillion USDY @ 6 decimals)
     bool    active;      // slot 0: byte  31
     uint128 karma;       // slot 1: bytes  0-15
     uint64  joinedAt;    // slot 1: bytes 16-23
@@ -57,7 +57,7 @@ mapping(address => uint256)  public lastShareDay;     // wallet  => UTC day
 | `exit(uint256 tokenId)` | owner of token | Unstake + burn NFT | `NotDisciple` |
 | `checkIn(uint256 tokenId)` | the Disciple | Daily faith action → **+5 karma** | `NotDisciple`, `AlreadyCheckedIn` |
 | `recordShare(uint256 tokenId, string channel)` | the Disciple | Share action → **+3 karma** | `NotDisciple`, `AlreadyShared` |
-| `grantKarma(uint256 tokenId, uint256 amount)` | `onlyOracle` | Oracle-granted karma | `NotDisciple` |
+| `grantKarma(uint256 tokenId, uint256 amount)` | `onlyOracle` | Oracle-granted karma | `NotOracle`, `NotDisciple` |
 | `cardOf(address)` | view (mapping) | Wallet → tokenId | — |
 | `disciples(uint256)` | view (mapping) | Full Disciple record | — |
 | `totalFaith()` | view | Total active stake | — |

@@ -21,7 +21,7 @@ Shorter, for a tweet:
 
 | Judging criterion | How this project hits it |
 |---|---|
-| **Technical excellence** | 5 interlocking contracts + **3 autonomous AI agents** + a deterministic world sim + a 15k-entity browser engine |
+| **Technical excellence** | 5 interlocking contracts + **3 autonomous AI agents** + a deterministic world sim + a browser engine that simulates up to 15k entities |
 | **Consumer / viral appeal** | Dark mystical pixel UI, one-click stake-to-mint, soulbound shareable cards with OG images, a watchable god-game |
 | **Mantle integration** | USDY staking (real RWA), soulbound identity NFTs, every AI decision a permanent Mantle tx |
 | **Real-world impact** | A gamified yield product people actually earn from + an on-chain social experiment |

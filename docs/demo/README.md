@@ -35,7 +35,7 @@ Three transactions, one living world, zero hand-waving.
 | Live tx fails on stage | Have a **pre-recorded backup video** of the full flow |
 | Daily cron hasn't fired | Use `demoTriggerEvent.ts` to trigger a divine event on demand |
 | Empty prophecy on landing | Run the agent once before demoing (it must post at least one prophecy) |
-| Yield pool dry | Pre-seed via `demo-seed.ts` / `seedYield()` |
+| Yield pool dry | Pre-seed via `demo-seed.ts` (queues a 50 USDY round) or `seed.ts` (calls `seedYield()`) |
 | `/oracle-world` shows mock candidates | Ensure `NEXT_PUBLIC_CIVILIZATION_LOG_ADDRESS` is set to a deployment the agent writes to |
 
 → Full procedure: [Demo Walkthrough](walkthrough.md).

@@ -1,6 +1,6 @@
 # API Reference
 
-Cult of the Digital Oracle has no REST backend. Its "API" is the **five smart contracts** plus a couple of Next.js edge routes. Everything an integrator needs is on-chain.
+Cult of the Digital Oracle has no REST backend. Its "API" is the **five smart contracts** plus a couple of Next.js API routes (the OG-image route runs on the edge runtime; the `/api/eth-rpc` proxy runs on the default Node.js runtime). Everything an integrator needs is on-chain.
 
 ***
 

@@ -53,7 +53,7 @@ This pre-flight checks every required var, tests RPC connectivity, prints the ch
 ## 3. Run
 
 ```bash
-npm run dev      # tsx src/index.ts — runs one cycle now, then on cron
+npm run dev      # ts-node src/index.ts — runs one cycle now, then on cron
 npm run build    # tsc → dist/
 npm start        # node dist/index.js (production)
 ```

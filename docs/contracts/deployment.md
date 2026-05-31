@@ -43,7 +43,7 @@ The **frontend's `NEXT_PUBLIC_*` configuration** (root `README.md` + `apps/web/R
 
 ## Deploy order
 
-`scripts/deploy.ts` deploys the five contracts and wires their constructor dependencies in this order:
+`scripts/deploy.ts` deploys up to five contracts — it deploys `MockUSDY` only when no `USDY_ADDRESS` env var is set (the default demo path), otherwise it reuses the provided USDY token — and wires the rest in this order:
 
 ```mermaid
 graph LR
@@ -53,7 +53,7 @@ graph LR
     C[5 · CivilizationLog&#40;civEngine&#41;]
 ```
 
-`TempleVault` needs the USDY address; `BlessingDistributor` needs both USDY and the vault; `OracleMessage` and `CivilizationLog` take their privileged EOA. Capture **all five** printed addresses.
+`TempleVault` needs the USDY address; `BlessingDistributor` needs both USDY and the vault; `OracleMessage` and `CivilizationLog` take their privileged EOA. Capture **every** printed address (five on the demo path; four if you reused an existing `USDY_ADDRESS`).
 
 ```bash
 cd contracts

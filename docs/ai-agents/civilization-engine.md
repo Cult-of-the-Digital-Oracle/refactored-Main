@@ -27,9 +27,9 @@ It is **not** a fourth LLM. Given the same seed and the same divine events, it p
 
 | Region | Faction | Start population | Start faith |
 |---|---|---|---|
-| (25, 35) | believer | 30 | ~75 |
-| (75, 45) | apostate | 30 | ~20 |
-| (50, 75) | wanderer | 40 | ~50 |
+| (25, 35) | believer | 30 | 70 |
+| (75, 45) | apostate | 30 | 30 |
+| (50, 75) | wanderer | 40 | 50 |
 
 Each `Entity` has a `type`, `faith` (0–100), `karma`, and `health`; each `Region` has `population`, `faith`, `resources`, a `faction`, and a position.
 
@@ -60,7 +60,7 @@ Organic evolution, no god required:
 
 ### Region & entity behavior (`entityBehavior.ts`)
 
-* **Schism:** a region over 150 population may split, founding a new region and migrating ~10 entities (faith carried at ×0.8).
+* **Schism:** a region over 150 population may split (~15% chance per active region), founding a new region whose faith is inherited at ×0.8 of the parent, then migrating up to 10 entities (entity faith unchanged).
 * **Abandon:** an empty region, or one whose faith stays below 10 for three straight days, is deactivated.
 * **Per entity:** `health < 20` → **flee** to the safest high-resource region; `faith < 30` → **convert** (believer↔apostate flip) or **migrate** toward an aligned region; `faith > 70` → **build** (adds region resources + karma); otherwise idle.
 
@@ -74,7 +74,7 @@ When the Demiurge fires a tool, `applyDivineTool(toolId, params)` mutates the wo
 |:--:|---|---|
 | 0 | Blessing Rain | all entities faith +25 / health +10; regions faith +20 |
 | 1 | Harvest Tide | regions resources +50; entities health +20 |
-| 2 | Missionary Wave | spawn **20** believers (faith 80–99) in target region |
+| 2 | Missionary Wave | spawn **20** believers (faith 80–99) in target region; target region faith +30 |
 | 3 | Architect Gift | found a new region (pop 15, faith 60) + 15 settlers |
 | 4 | Peace Covenant | entities karma +30 / health +15; regions move toward harmony |
 | 5 | Meteor Strike | kill **40%** of target-region entities; resources −50; faith −20 |

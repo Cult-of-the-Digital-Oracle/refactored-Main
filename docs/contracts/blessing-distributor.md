@@ -65,7 +65,7 @@ Both `yieldPool` and `totalFaithSnap` are **frozen at queue time**. A Disciple w
 
 | Function | Access | Purpose | Reverts |
 |---|---|---|---|
-| `queueBlessing(uint256 day, uint256 yieldAmount)` | `onlyOracle` | Open a round, pull `yieldAmount` USDY from the oracle | `InsufficientYieldPool` (amount 0), `NoActiveFaith` (`totalFaith == 0`) |
+| `queueBlessing(uint256 day, uint256 yieldAmount)` | `onlyOracle` | Open a round, pull `yieldAmount` USDY from the oracle | `NotOracle`, `InsufficientYieldPool` (amount 0), `NoActiveFaith` (`totalFaith == 0`) |
 | `claim(uint256 roundId, uint256 tokenId)` | the original Disciple | Claim your share | `RoundNotFound`, `AlreadyClaimed`, `NotDisciple`, `NothingToClaim` |
 | `pendingBlessing(uint256 roundId, uint256 tokenId)` → `uint256` | view | Preview claimable amount | — |
 | `rounds(uint256)` | view (mapping) | Round details | — |

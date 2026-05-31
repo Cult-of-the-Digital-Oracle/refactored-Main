@@ -48,7 +48,7 @@ Every dependency, grouped by workspace, with the reason it's there.
 
 | Tool | Role |
 |---|---|
-| **Node.js** (24 in CI) + **TypeScript / tsx** | Runtime |
+| **Node.js** (24 in CI) + **TypeScript** | Runtime — `ts-node` locally (`npm run dev`), `npx tsx` in CI |
 | **ethers v6** | Contract reads/writes from the agent |
 | **`openai` SDK** | LLM client — pointed at **OpenRouter**, not OpenAI |
 | **OpenRouter** | Model gateway: `google/gemini-2.5-flash` (Oracle, Evaluator), `anthropic/claude-3-5-sonnet` (Demiurge) |
