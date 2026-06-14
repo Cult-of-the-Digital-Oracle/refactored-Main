@@ -75,6 +75,30 @@ export class CivilizationEngine {
     return seedrandom(customSeed || this.state.seed);
   }
 
+  /** Next unused entity id — deterministic (max existing + 1). Replaces Date.now()
+   *  so ids of spawned entities are reproducible across runs. */
+  private nextEntityId(): number {
+    let max = 0;
+    for (const e of this.state.entities) if (e.id > max) max = e.id;
+    return max + 1;
+  }
+
+  /** Refresh region populations + aggregate totals from the current entities/regions
+   *  WITHOUT applying growth/decay (that belongs to tick()). */
+  private recomputeTotals(): void {
+    const { regions, entities } = this.state;
+    regions.forEach(r => {
+      if (r.isActive) r.population = entities.filter(e => e.regionId === r.id).length;
+    });
+    this.state.totalPopulation = regions.reduce((s, r) => s + (r.isActive ? r.population : 0), 0);
+    this.state.totalFaith = entities.reduce((s, e) => s + e.faith, 0);
+    this.state.activeRegions = regions.filter(r => r.isActive).length;
+    const believers = entities.filter(e => e.type === 'believer').length;
+    const apostates = entities.filter(e => e.type === 'apostate').length;
+    this.state.dominantFaction = believers > apostates * 1.2 ? 'believer'
+      : apostates > believers * 1.2 ? 'apostate' : 'balanced';
+  }
+
   /**
    * Tick civilization by one day.
    */
@@ -185,7 +209,9 @@ export class CivilizationEngine {
    * Applies a divine tool effect to the world state.
    */
   async applyDivineTool(toolId: number, params: DivineToolParams = {}): Promise<DivineToolResult> {
-    const rng = this.getRNG(`divine-tool-${toolId}-${Date.now()}`);
+    // Seed by (toolId, day) — NOT Date.now() — so the resulting world state and
+    // its on-chain keccak hash are reproducible for the same logical inputs.
+    const rng = this.getRNG(`divine-tool-${toolId}-${this.state.day}`);
     let description = '';
     let affectedEntities = 0;
     const affectedRegions: number[] = [];
@@ -236,7 +262,7 @@ export class CivilizationEngine {
       case 2: // Missionary Wave (Good, polarity=1)
         description = `Inspired visionaries arise, converting lost souls and swelling the ranks of believers.`;
         // Spawn 20 believer units in target region
-        const baseId = Date.now();
+        const baseId = this.nextEntityId();
         for (let i = 0; i < 20; i++) {
           this.state.entities.push({
             id: baseId + i,
@@ -273,7 +299,7 @@ export class CivilizationEngine {
         affectedRegions.push(nextId);
 
         // Spawn 15 initial settlers
-        const sId = Date.now() + 500;
+        const sId = this.nextEntityId();
         for (let i = 0; i < 15; i++) {
           this.state.entities.push({
             id: sId + i,
@@ -380,8 +406,10 @@ export class CivilizationEngine {
         return { success: false, affectedEntities: 0, affectedRegions: [], description: `Unknown tool ID ${toolId}` };
     }
 
-    // Recalculate totals
-    this.state = applyNaturalGrowth(this.state, this.getRNG());
+    // Recalculate aggregate totals only — do NOT run full natural growth here.
+    // The daily tick() applies growth/decay; doing it here too double-applied it
+    // on divine-event days. Totals still refresh so the snapshot stays correct.
+    this.recomputeTotals();
     await this.saveState();
 
     return {
