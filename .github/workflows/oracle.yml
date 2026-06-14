@@ -37,9 +37,9 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           # Default to a free OpenRouter model so no credit top-up is needed.
           # Override per role by setting the matching repo secret (ORACLE_MODEL, ...).
-          ORACLE_MODEL: ${{ secrets.ORACLE_MODEL || 'meta-llama/llama-3.3-70b-instruct:free' }}
-          EVALUATOR_MODEL: ${{ secrets.EVALUATOR_MODEL || 'meta-llama/llama-3.3-70b-instruct:free' }}
-          DEMIURGE_MODEL: ${{ secrets.DEMIURGE_MODEL || 'meta-llama/llama-3.3-70b-instruct:free' }}
+          ORACLE_MODEL: ${{ secrets.ORACLE_MODEL || 'openai/gpt-oss-120b:free' }}
+          EVALUATOR_MODEL: ${{ secrets.EVALUATOR_MODEL || 'openai/gpt-oss-120b:free' }}
+          DEMIURGE_MODEL: ${{ secrets.DEMIURGE_MODEL || 'openai/gpt-oss-120b:free' }}
           FULFILLMENT_THRESHOLD: "70"
           # Run once and exit — no cron loop needed in CI
           CRON_SCHEDULE: ""
