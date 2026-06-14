@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 import { Providers } from "./providers";
@@ -7,6 +7,14 @@ export const metadata: Metadata = {
   title: "Cult of the Digital Oracle",
   description:
     "An AI reads Mantle every day and speaks. Stake USDY. Receive your Disciple NFT. When prophecy fulfills, the faithful are rewarded.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: "#07070c",
 };
 
 export default function RootLayout({

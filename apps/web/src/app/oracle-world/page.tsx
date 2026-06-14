@@ -435,7 +435,7 @@ export default function OracleWorldPage() {
       )}
 
       {/* Main HUD overlay layer (z-10) with pointer-events-none */}
-      <div className="absolute inset-0 pointer-events-none z-10 flex flex-col justify-between p-6">
+      <div className="absolute inset-0 pointer-events-none z-10 flex flex-col justify-between p-3 md:p-6">
         
         {/* TOP ROW HUD - Banner & Quick Toggles */}
         <header className="flex flex-col md:flex-row justify-between items-center gap-4 w-full pointer-events-auto">
@@ -467,7 +467,7 @@ export default function OracleWorldPage() {
           </div>
 
           {/* Quick HUD Toggles */}
-          <div className="flex gap-2">
+          <div className="flex flex-wrap justify-center md:justify-end gap-2">
             <button 
               onClick={() => setShowProphecy(p => !p)}
               className="pointer-events-auto active:translate-y-0.5 transition-all cursor-pointer"
@@ -522,10 +522,10 @@ export default function OracleWorldPage() {
         </header>
 
         {/* MIDDLE / LOWER DOCKING ROW */}
-        <div className="flex-1 flex justify-between gap-6 items-end mt-4 w-full h-[calc(100%-80px)] pointer-events-none">
+        <div className="flex-1 flex justify-between gap-2 md:gap-6 items-end mt-4 w-full h-[calc(100%-80px)] pointer-events-none">
           
           {/* LEFT SIDEBAR HUD - Prophecy & Event Log */}
-          <div className="flex flex-col gap-4 w-80 pointer-events-auto h-full justify-end max-h-[85%]">
+          <div className="flex flex-col gap-4 w-[46vw] max-w-[20rem] md:w-80 min-w-0 pointer-events-auto h-full justify-end max-h-[85%]">
             {showProphecy && (
               <div className="transition-all duration-300">
                 <ProphecyOverlay
@@ -543,7 +543,7 @@ export default function OracleWorldPage() {
           </div>
 
           {/* CENTER BOTTOM - Interactive Info Card Tooltip */}
-          <div className="pointer-events-auto w-96 flex flex-col justify-end max-h-[85%] self-end">
+          <div className="hidden md:flex pointer-events-auto w-96 flex-col justify-end max-h-[85%] self-end">
             <EntityInfoCard
               hoveredEntity={hoveredEntity}
               hoveredRegion={hoveredRegion}
@@ -551,7 +551,7 @@ export default function OracleWorldPage() {
           </div>
 
           {/* RIGHT SIDEBAR HUD - Divine Tools Panel */}
-          <div className="w-80 pointer-events-auto h-full flex flex-col justify-end items-end max-h-[85%]">
+          <div className="w-[46vw] max-w-[20rem] md:w-80 min-w-0 pointer-events-auto h-full flex flex-col justify-end items-end max-h-[85%]">
             {showDivinePanel && (
               <div className="transition-all duration-300 w-full">
                 <DivineToolsPanel
