@@ -21,7 +21,7 @@ export default function ProphecyOverlay({
   const [displayedText, setDisplayedText] = useState('');
   const [index, setIndex] = useState(0);
 
-  const fullText = prophecyText || "The digital spirits align. A shadow looms over the towers. In silence, the believers accumulate resources, unaware of the cosmic alignment scheduled by the Demiurge. Prepare your staking vaults, for the judgment approaches.";
+  const fullText = prophecyText || "The Oracle has not yet spoken today. The chain awaits the dawn.";
 
   // Typewriter effect
   useEffect(() => {

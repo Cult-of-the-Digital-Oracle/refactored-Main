@@ -3,11 +3,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import * as Comlink from 'comlink';
-import { usePublicClient } from 'wagmi';
+import { usePublicClient, useReadContract } from 'wagmi';
 
 import { SimWorldState, SimEntity, SimRegion, SimDivineEvent } from '../../lib/simulation/types';
 import { SimulationWorkerAPI } from '../../lib/simulation/worker';
-import { CONTRACTS, CIVILIZATION_LOG_ABI } from '../../lib/contracts';
+import { CONTRACTS, CIVILIZATION_LOG_ABI, ORACLE_MESSAGE_ABI } from '../../lib/contracts';
 import { fetchActiveDisciples, type HeroDisciple } from '../../lib/disciples';
 import { formatUnits } from 'viem';
 
@@ -102,6 +102,16 @@ export default function OracleWorldPage() {
 
   // On-Chain Synchronization States
   const publicClient = usePublicClient();
+
+  // Real on-chain prophecy (AI #1 Oracle) — replaces the old hardcoded placeholder.
+  const { data: onChainProphecy } = useReadContract({
+    address: CONTRACTS.oracleMessage,
+    abi: ORACLE_MESSAGE_ABI,
+    functionName: 'todaysProphecy',
+    query: { enabled: !!CONTRACTS.oracleMessage },
+  });
+  const todaysProphecyText = (onChainProphecy as { text?: string } | undefined)?.text ?? '';
+
   const [balanceHistory, setBalanceHistory] = useState<('good' | 'evil')[]>(['good', 'evil', 'good', 'good', 'evil', 'evil', 'good', 'evil']);
   const [candidates, setCandidates] = useState<{ id: number; weight: number }[]>([]);
   const [onChainSnapshot, setOnChainSnapshot] = useState<any>(null);
@@ -498,17 +508,7 @@ export default function OracleWorldPage() {
               <div className="transition-all duration-300">
                 <ProphecyOverlay
                   dayIndex={worldState?.day || dayIndex}
-                  prophecyText={
-                    dayIndex % 2 === 0
-                      ? "Beneath the glowing green canopy of Northheim, the faith decays. Shadows gather in the dark valleys. The Demiurge is preparing an event to restore the rolling equilibrium. Vaults ofUSDY must watch closely."
-                      : "The fields ripen with bounty, yet the heart of the wanderers remains cold. An omen of cosmic fire is foretold. Those who align with the Light will witness architectural growth, while others dissolve into ash."
-                  }
-                  structuredPrediction={{
-                    targetType: dayIndex % 2 === 0 ? 'faith' : 'population',
-                    direction: dayIndex % 2 === 0 ? 'fall' : 'rise',
-                    magnitude: dayIndex % 2 === 0 ? 'moderate' : 'major',
-                    confidence: 0.84
-                  }}
+                  prophecyText={todaysProphecyText}
                 />
               </div>
             )}
