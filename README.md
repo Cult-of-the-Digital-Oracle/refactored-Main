@@ -1,236 +1,204 @@
-# Cult of the Digital Oracle
+<div align="center">
 
-> The Turing Test Hackathon 2026 by Mantle - Consumer & Viral DApps
+# 🔮 Cult of the Digital Oracle
 
-**Live:** https://web-red-nine-58.vercel.app
+### A 3-AI autonomous civilization that reads the blockchain, prophesies, and judges your faith — on Mantle.
 
-An AI agent reads the Mantle blockchain every day — including its own community of believers — writes a cryptic prophecy on-chain, and later judges whether that prophecy came true. Users stake USDY into the Temple, mint a soulbound Disciple NFT, and claim yield when the Oracle declares fulfillment.
+**Stake USDY. Become a soulbound Disciple. Pray to an AI god.**
+Pray sincerely and it pays you real yield. Pray lazily and it **strikes your hero with lightning.**
 
-## What it is
+[![Live Demo](https://img.shields.io/badge/▶_Live_Demo-cult--oracle.vercel.app-7c3aed?style=for-the-badge)](https://cult-oracle.vercel.app/)
+[![Mantle Sepolia](https://img.shields.io/badge/Mantle-Sepolia_5003-65b3ae?style=for-the-badge)](https://sepolia.mantlescan.xyz/)
+[![Track](https://img.shields.io/badge/Track-Consumer_&_Viral_DApps-ff5577?style=for-the-badge)](https://dorahacks.io/hackathon/mantleturingtesthackathon2026)
 
-Cult of the Digital Oracle is an experiment in autonomous AI belief economies on Mantle:
+</div>
 
-- An AI oracle watches the chain and its own cult — disciple count, total faith staked, who joined or left — and turns that into eerie daily prophecies.
-- Every prophecy is recorded on-chain, immutable.
-- Believers stake USDY and receive a soulbound Disciple identity (ERC-721, non-transferable).
-- Fulfilled prophecies trigger blessing rounds: USDY yield distributed pro-rata to active Disciples.
-- The oracle scores its own past prophecy against what actually happened in the Temple, creating a self-fulfilling loop — if the oracle predicts growth and disciples stake to make it true, the prophecy fulfills and blessings flow.
-- Each Disciple has a shareable pixel-art card with a dynamic OG image.
+---
 
-The point is not "AI on crypto." It is an auditable AI ritual with on-chain memory, identity, and economic consequences — an autonomous agent with skin in the game of its own predictions.
+## ⚡ The Hook
 
-## User flow
+Most on-chain "AI agents" are a chatbot with a wallet. **Ours is a god.**
 
-1. Open `/temple` and connect a wallet.
-2. Mint test USDY with the faucet.
-3. Approve USDY and enter the Temple.
-4. Receive a soulbound Disciple NFT tied to your wallet.
-5. Wait for the oracle's daily cycle.
-6. Claim blessing yield pro-rata based on stake when prophecy fulfills.
-7. Share the Disciple card via `/disciple/[tokenId]`.
+Every day, three autonomous AIs wake up, read raw Mantle chain activity, and turn it into a **living mythology**: a cryptic prophecy posted on-chain, a simulated civilization of NPCs whose state is hashed and committed forever, and a capricious deity — the **Demiurge** — that rains blessings or cataclysms on the world.
 
-## Oracle agent flow
+Then it gets personal. Our flagship feature, **Proof of Worship**, lets you walk up to the altar and *type a prayer*. An LLM playing the Demiurge judges your sincerity in real time:
 
-Once per day (midnight UTC), the agent:
+- 🙏 **Sincere?** It signs an EIP-712 attestation and the smart contract releases **real USDY yield** to your wallet.
+- ☠️ **Lazy, greedy, or `"gm wen claim"`?** The Demiurge **denies you and a cinematic lightning bolt cracks down onto your own hero NPC** inside the PixiJS world — charred sprite, screen shake, scorched earth, the works.
 
-1. Fetches Mantle chain data — transactions, gas, USDY volume, active addresses.
-2. Fetches Temple state — disciple count, total faith staked, who joined or exited in the last 24h.
-3. Evaluates yesterday's prophecy against today's chain + Temple data (hybrid LLM + deterministic score).
-4. Resolves that prophecy on-chain with a score 0–100 and a reason.
-5. Queues a blessing round if score ≥ threshold (default 70).
-6. Generates today's prophecy using real chain + cult data as context, posts it on-chain.
+An AI that reads the chain, runs a civilization, **and electrocutes you for a low-effort prayer.** That's the consumer hook.
 
-## Smart contracts
+> **▶ Try it live: [cult-oracle.vercel.app](https://cult-oracle.vercel.app/)**
 
-Deployed on Mantle Sepolia.
+---
 
-### `OracleMessage.sol`
+## 🧠 Core Architecture — The 3-AI Loop
 
-Stores one prophecy per UTC day and its fulfillment result.
+The entire world is driven by an unattended daily cron. No human in the loop.
 
-```solidity
-postProphecy(string text)
-resolveProphecy(uint256 day, uint8 score, string reason, string evidence)
-todaysProphecy() returns (Prophecy)
-getProphecy(uint256 day) returns (Prophecy)
+```
+        ┌─────────────────────── MANTLE SEPOLIA ───────────────────────┐
+        │  OracleMessage   TempleVault   CivilizationLog   ProofOfWorship│
+        └───────▲───────────────▲──────────────▲────────────────▲───────┘
+                │ writes         │ reads stake  │ writes/reads   │ EIP-712 gate
+   ┌────────────┴──────┐  ┌──────┴──────┐  ┌────┴───────────┐
+   │  🔵 AI #1 ORACLE  │  │ 🟢 AI #2     │  │ 🔴 AI #3        │
+   │  reads chain →    │→ │ CIVILIZATION │→ │ DEMIURGE        │
+   │  prophesies →     │  │ ENGINE       │  │ reads prophecy →│
+   │  scores itself    │  │ ticks world, │  │ picks 1 of 10   │
+   │                   │  │ keccak-hashes│  │ divine tools,   │
+   │                   │  │ snapshot     │  │ executes 24h    │
+   └───────────────────┘  └──────────────┘  └─────────────────┘
+                                │
+                       ┌────────┴─────────┐
+                       │  /oracle-world   │  PixiJS v8 replays every on-chain
+                       │  (the browser)   │  divine event as cinematic VFX
+                       └──────────────────┘
 ```
 
-### `TempleVault.sol`
+| Agent | Role | On-chain artifact |
+|---|---|---|
+| 🔵 **AI #1 — The Oracle** | Reads daily Mantle metrics, writes a cryptic prophecy, later **scores its own fulfillment** (hybrid LLM + deterministic baseline). | `OracleMessage.postProphecy` / `resolveProphecy` |
+| 🟢 **AI #2 — Civilization Engine** | A deterministic, seed-reproducible simulation of an NPC continent. Ticks once per day and commits a **keccak256 state hash** on-chain — a verifiable fingerprint of the world. | `CivilizationLog.postSnapshot` |
+| 🔴 **AI #3 — The Demiurge** | Reads the day's prophecy, weighs 10 divine tools (blessings & cataclysms) under a rolling 50/50 good/evil balance, schedules one, and executes it 24h later. | `CivilizationLog.logDivineEvent` / `postDemiurgePreview` |
 
-Accepts USDY deposits and mints a soulbound Disciple NFT. One per wallet. Transfers blocked.
+The browser (`/oracle-world`) polls the chain every 15s and **replays the AI's real decisions** as a 60 FPS PixiJS spectacle: meteor strikes, blessing sky-beams, plague domes — and your wallet rendered as a named, glowing **hero NPC** living in it.
 
-```solidity
-enter(uint256 amount) returns (uint256 tokenId)
-exit(uint256 tokenId)
-cardOf(address wallet) returns (uint256 tokenId)
-totalFaith() returns (uint256)
-nextId() returns (uint256)
+---
+
+## 💸 The Proof of Worship Loop (the viral core)
+
+```
+  Player types a prayer
+          │
+          ▼
+  /api/worship ── the Demiurge LLM judges SINCERITY (0-100) ──┐
+          │                                                    │
+   score ≥ 60 (sincere)                              score < 60 (lazy/greedy)
+          │                                                    │
+  server signs EIP-712 WorshipPass                    NO signature →
+          │                                            ⚡ LIGHTNING STRIKES
+  worship() verifies sig on-chain                       your hero NPC in
+          │                                             /oracle-world
+  USDY released to wallet ✨                            (no reward)
 ```
 
-### `BlessingDistributor.sol`
+The LLM judgment is off-chain (you can't run an LLM in Solidity) — but the verdict is **enforced on-chain** via the AI's signature. `ProofOfWorship.worship()` only pays out *after* `ECDSA.recover() == worshipSigner`. The god's judgment is cryptographically binding.
 
-Distributes yield pro-rata after fulfilled prophecies.
+---
 
-```solidity
-queueBlessing(uint256 day, uint256 amount)
-claim(uint256 roundId, uint256 tokenId)
-pendingBlessing(uint256 roundId, uint256 tokenId) returns (uint256)
-```
+## ⚡ Why Mantle
 
-### `MockUSDY.sol`
+This design is **only economically viable on Mantle.** Every single day the agents fire 4-6 transactions (prophecy, self-score, civilization snapshot, demiurge preview, divine event, yield round) — and players fire micro-transactions constantly (stake, check-in, share, pray, claim).
 
-Test ERC-20 with 6 decimals and a public `faucet()` → 1000 tokens.
+- **Sub-cent fees → daily on-chain `keccak256` world snapshots.** Committing a verifiable civilization state hash *every day, forever* would be absurd on Ethereum L1. On Mantle it costs a fraction of a cent — so the "verifiable AI world" is real, not a mock.
+- **Cheap micro-transactions → the worship/yield loop works.** A 0.1 USDY prayer reward, daily karma check-ins, and per-prayer EIP-712 claims would be gas-prohibitive on L1. On Mantle, praying for fun costs nothing.
+- **An autonomous agent that runs daily, indefinitely.** Low fees mean the AI can *keep acting* without bleeding the treasury — the civilization genuinely lives on-chain.
+- **USDY (RWA stablecoin)** gives us real yield to distribute to the faithful.
 
-## Frontend routes
+> On L1 this is a tech demo. On Mantle it's a living, self-funding economy.
 
-| Route | Description |
-|---|---|
-| `/` | Landing page — live on-chain prophecy, pixel-art presentation |
-| `/temple` | Faucet → approve → stake → Disciple card → claim blessings |
-| `/prophecies` | Archive of all past prophecies with fulfillment scores |
-| `/leaderboard` | Disciples ranked by faith, karma, and seniority |
-| `/disciple/[tokenId]` | Shareable Disciple identity card |
-| `/api/og/disciple/[tokenId]` | Dynamic OG image for social sharing |
+---
 
-## Tech stack
+## 🛠️ Tech Stack
 
 | Layer | Stack |
 |---|---|
-| Frontend | Next.js 16, React, Tailwind v4, TypeScript |
-| Web3 | wagmi v2, viem, ConnectKit |
-| Wallet UI | Press Start 2P + VT323 pixel fonts, custom pixel-art asset pack |
-| Contracts | Hardhat, Solidity 0.8.27, OpenZeppelin |
-| Agent | Node.js, ethers v6, Groq API (llama-3.3-70b) via OpenAI-compatible SDK |
-| Network | Mantle Sepolia (chainId 5003) |
-| OG images | `next/og` edge runtime |
-| Hosting | Vercel |
+| **Frontend** | Next.js 16 · React 19 · TypeScript · Tailwind v4 · **PixiJS v8** (WebGL) · wagmi v2 + viem · ConnectKit |
+| **Simulation** | Web Worker + Struct-of-Arrays ECS · FastNoiseLite continent gen · Comlink |
+| **Contracts** | Solidity 0.8.27 (Cancun) · **Hardhat** · **OpenZeppelin** (Ownable, EIP712, ECDSA, SafeERC20) |
+| **AI Agent** | Node.js + TypeScript · ethers v6 · node-cron · **OpenRouter LLMs** (`gpt-oss-120b`) |
+| **Chain** | Mantle Sepolia (chainId **5003**) · USDY (RWA) |
 
-## Repository structure
+---
 
-```text
-hackathon-mantle/
-├── apps/web/               # Next.js frontend
-│   └── src/
-│       ├── app/            # routes and OG API
-│       ├── components/     # UI building blocks
-│       └── lib/            # wagmi config, contract constants, asset manifest
-├── contracts/              # Hardhat project
-│   ├── contracts/
-│   └── scripts/
-├── agent/                  # AI oracle backend
-│   └── src/
-│       ├── index.ts        # cron orchestration
-│       ├── fetchChainData.ts   # Mantle + Temple state reader
-│       ├── generateProphecy.ts # LLM prophecy generation
-│       ├── evaluateProphecy.ts # hybrid fulfillment scoring
-│       └── postToChain.ts  # contract write helpers
-├── PROJECT.md              # product and pitch context
-├── CLAUDE.md               # repo-specific coding notes
-└── PIXEL_ART_PROMPTS.md    # source prompt set for generated asset pack
-```
+## 📜 Smart Contracts (Mantle Sepolia)
 
-## Quick start
+| Contract | Purpose | Address |
+|---|---|---|
+| **OracleMessage** | Daily prophecies + self-scored fulfillment | [`0xB983901d…78B36F`](https://sepolia.mantlescan.xyz/address/0xB983901d66b7aD12305657C172fD84855d78B36F) |
+| **TempleVault** | Stake USDY → soulbound Disciple NFT + karma | [`0xF83Cd1C5…a8b925`](https://sepolia.mantlescan.xyz/address/0xF83Cd1C5f8Eb2848175Ded767565BBaEC1a8b925) |
+| **CivilizationLog** | AI civilization snapshots + divine-event ledger | [`0x4aeFE7Ee…0c235`](https://sepolia.mantlescan.xyz/address/0x4aeFE7Eebbf22B6B9005c08E3dbe89d8Fa90c235) |
+| **ProofOfWorship** ⚡ | AI-judged, EIP-712-gated USDY worship rewards | [`0x25Bc7D88…EC35D`](https://sepolia.mantlescan.xyz/address/0x25Bc7D88E367f2eBBCd09ACcE3D600be5CcEC35D) |
+| **BlessingDistributor** | Pro-rata USDY yield when prophecies fulfill | [`0x75021000…3F1Ad3`](https://sepolia.mantlescan.xyz/address/0x750210002b3fA4C1Bbe485ECDd0200D5E03F1Ad3) |
+| **MockUSDY** | Testnet RWA stablecoin (6 decimals) | [`0x7ADbf2a8…5b9500`](https://sepolia.mantlescan.xyz/address/0x7ADbf2a8b9348cC1F6Ee88Db12F9415Ee55b9500) |
 
-### Frontend
+Tested with Hardhat (**32 passing** — full `OracleMessage` / `TempleVault` / `BlessingDistributor` / `CivilizationLog` / `ProofOfWorship` coverage).
 
+---
+
+## 🎮 User Flow
+
+1. **Stake USDY** in the Temple → mint a **soulbound Disciple NFT** (your non-transferable identity).
+2. Your wallet **spawns as a named hero NPC** in `/oracle-world`, placed deterministically from your address.
+3. **Earn karma** with daily on-chain check-ins and shares.
+4. **Watch the AI's world** — prophecies, civilization snapshots, and the Demiurge's blessings/cataclysms play out in real time.
+5. **Pray at the Altar of Worship** — the AI judges your sincerity → USDY reward, or a lightning strike on your hero. 😈
+6. **Claim blessing yield** when a prophecy fulfills, then **share your hero card**.
+
+---
+
+## 🚀 Local Setup
+
+**Prereqs:** Node 20+, an [OpenRouter API key](https://openrouter.ai/keys), and a funded Mantle Sepolia wallet ([faucet](https://faucet.sepolia.mantle.xyz/)).
+
+### 1. Smart Contracts
 ```bash
-cd apps/web
+cd contracts
 npm install
-npm run dev       # dev server on :3000
+cp .env.example .env          # fill PRIVATE_KEY, USDY_ADDRESS, etc.
+npx hardhat compile
+npx hardhat test              # 32 passing
+npx hardhat run scripts/deploy.ts          --network mantleSepolia   # core 5 contracts
+npx hardhat run scripts/deploy-worship.ts  --network mantleSepolia   # Proof of Worship
 ```
 
-### Agent
-
+### 2. AI Agent (the 3-AI daily cron)
 ```bash
 cd agent
 npm install
-npm run dev       # runs oracle cycle immediately, then on cron
+cp .env.example .env          # contract addresses + OPENROUTER_API_KEY
+npx tsx scripts/verifyEnv.ts  # pre-flight: RPC, gas, contracts
+CRON_SCHEDULE="" npm run dev   # run one full cycle now
+# or:  DEMO_MODE=true npm run dev   # 30s cron for local dev
 ```
 
-### Contracts
-
+### 3. Web App
 ```bash
-cd contracts
+cd apps/web
 npm install
-npx hardhat compile
-npx hardhat run scripts/deploy.ts --network mantleSepolia
+cp .env.example .env.local     # NEXT_PUBLIC_* addresses + WORSHIP_SIGNER_KEY + OPENROUTER_API_KEY
+npm run dev                    # http://localhost:3000
 ```
 
-## Demo helpers
+> Visit `/temple` to stake and pray, `/oracle-world` to watch the AI civilization (and get smited).
 
-Populate a richer leaderboard with Disciples, check-ins, and a blessing round:
+---
 
-```bash
-cd contracts
-npm run demo:populate -- --network mantleSepolia
+## 🗺️ Repo Structure
+
+```
+.
+├── apps/web/          # Next.js 16 frontend + PixiJS v8 oracle-world
+│   ├── src/app/                      # /temple, /oracle-world, /prophecies, /api/worship
+│   ├── src/components/               # WorshipAltar, OracleWorld/* (WorldCanvas, HUD)
+│   └── src/lib/simulation/           # Web Worker ECS continent simulator
+├── agent/             # Node.js 3-AI daily cron
+│   └── src/{civilization,demiurge}/  # AI #2 + AI #3
+├── contracts/         # Hardhat — Solidity 0.8.27 + tests
+│   └── contracts/     # OracleMessage, TempleVault, CivilizationLog, ProofOfWorship, …
+└── docs/              # architecture diagrams, integration runbook, roadmap
 ```
 
-Seed only a blessing round:
+---
 
-```bash
-cd contracts
-npx hardhat run scripts/demo-seed.ts --network mantleSepolia
-```
+<div align="center">
 
-Send MNT gas to a test wallet:
+**Built for the Mantle Turing Test 2026 Hackathon — Consumer & Viral DApps**
 
-```bash
-cd contracts
-npx tsx scripts/topup.ts <wallet-address>
-```
+*An AI reads Mantle every day and speaks. Stake your faith. Receive your Disciple.*
+*When prophecy fulfills, the faithful are rewarded. When you pray lazily… run.* ⚡
 
-## Environment variables
+[**▶ Live Demo**](https://cult-oracle.vercel.app/) · [Mantlescan](https://sepolia.mantlescan.xyz/address/0x25Bc7D88E367f2eBBCd09ACcE3D600be5CcEC35D)
 
-**Frontend (`apps/web/.env.local`):**
-
-```env
-NEXT_PUBLIC_WC_PROJECT_ID=
-NEXT_PUBLIC_ORACLE_MESSAGE_ADDRESS=0xA41cA74250229F212367AB7f7b71552d07426Da3
-NEXT_PUBLIC_TEMPLE_VAULT_ADDRESS=0x7679f4252118FdAa5351CbcfA484965761a98CC4
-NEXT_PUBLIC_BLESSING_DISTRIBUTOR_ADDRESS=0x60Bda6640129221d9819E6fbeF1406c4e105f789
-NEXT_PUBLIC_USDY_ADDRESS=0x7ADbf2a8b9348cC1F6Ee88Db12F9415Ee55b9500
-```
-
-**Agent (`agent/.env`):**
-
-```env
-MANTLE_RPC_URL=https://rpc.sepolia.mantle.xyz
-ORACLE_PRIVATE_KEY=
-ORACLE_MESSAGE_ADDRESS=
-TEMPLE_VAULT_ADDRESS=
-BLESSING_DISTRIBUTOR_ADDRESS=
-USDY_ADDRESS=
-GROQ_API_KEY=
-FULFILLMENT_THRESHOLD=70
-CRON_SCHEDULE=0 0 * * *
-```
-
-## Current state (as of 2026-05-19)
-
-### Completed
-
-- [x] Smart contracts deployed on Mantle Sepolia
-- [x] Daily oracle cycle — fetch chain data, generate prophecy, post on-chain
-- [x] Prophecy resolution — LLM + deterministic hybrid score, on-chain resolution
-- [x] Blessing distribution — fulfilled prophecies queue USDY yield rounds
-- [x] Temple staking UX — faucet → approve → enter → Disciple NFT
-- [x] Blessing claim UX — pending amount shown, one-click claim
-- [x] Prophecy archive — all past prophecies with scores and resolution text
-- [x] Public leaderboard — disciples ranked by faith, karma, and seniority
-- [x] Shareable Disciple cards — `/disciple/[tokenId]` with OG image for Twitter/X
-- [x] Karma system — on-chain karma incremented on check-in and share actions
-- [x] Pixel-art frontend — Press Start 2P headings, VT323 body, custom asset pack
-- [x] ConnectKit wallet modal — MetaMask, WalletConnect QR, themed to match UI
-- [x] Temple-aware oracle — agent reads own disciple count, total faith, and 24h joins/exits when generating and scoring prophecies
-- [x] Oracle-given disciple names — deterministic mystical names generated from wallet address (e.g. "The Ashen Keeper", "Void Warden of the Chain") shown on leaderboard, disciple card, and temple
-- [x] Vercel deployment — live at https://web-red-nine-58.vercel.app
-
-### What makes it interesting
-
-The oracle is not just a text generator. It watches its own community. When it predicts growth and disciples stake to fulfill that prediction, the score rises, blessings flow, and the cycle continues. The prophecy creates the behavior that makes it true — a self-fulfilling economy mediated by an autonomous AI agent operating entirely on-chain.
-
-## Hackathon
-
-- Event: https://dorahacks.io/hackathon/mantleturingtesthackathon2026
-- Track: Consumer & Viral DApps
-- Network: Mantle Sepolia for demo
+</div>

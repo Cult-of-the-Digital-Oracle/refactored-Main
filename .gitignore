@@ -20,3 +20,15 @@ coverage.json
 *.log
 .vscode/
 .idea/
+
+# internal dev notes — kept locally, not shipped to the repo
+CLAUDE.md
+PIXEL_ART_PROMPTS.md
+PROJECT.md
+deep-research-report.md
+
+# session / agent scratch
+*.tmp.*
+2026-*.txt
+God Simulator_*.md
+agent/2026-*.txt
