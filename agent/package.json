@@ -25,5 +25,8 @@
     "@types/seedrandom": "^3.0.8",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.3"
+  },
+  "overrides": {
+    "ws": ">=8.20.1"
   }
 }
