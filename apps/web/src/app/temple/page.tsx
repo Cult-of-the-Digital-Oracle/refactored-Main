@@ -20,6 +20,7 @@ import {
   TEMPLE_VAULT_ABI,
 } from "@/lib/contracts";
 import PixelFrame from "@/components/PixelFrame";
+import WorshipAltar from "@/components/WorshipAltar";
 import { OracleSprite } from "@/components/OracleSprite";
 import { AmbientRunes } from "@/components/AmbientRunes";
 import { OracleButton } from "@/components/OracleButton";
@@ -486,6 +487,10 @@ function DiscipleCard({
 
       <div className="mt-5">
         <ClaimPanel tokenId={tokenId} />
+      </div>
+
+      <div className="mt-5">
+        <WorshipAltar />
       </div>
 
       <div className="mt-5 flex flex-col gap-3 sm:flex-row">
