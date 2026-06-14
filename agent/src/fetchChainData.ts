@@ -51,6 +51,31 @@ const TEMPLE_VAULT_ABI = [
   "function totalFaith() external view returns (uint256)",
 ];
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// The public Mantle RPC throttles eth_getLogs by request rate (-32016
+// "rate limit exceeded"). Retry with exponential backoff so a transient
+// throttle doesn't silently zero out the chain/Temple snapshot.
+async function getLogsRetry(
+  provider: ethers.JsonRpcProvider,
+  filter: ethers.Filter,
+  retries = 4
+): Promise<ethers.Log[]> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await provider.getLogs(filter);
+    } catch (err: unknown) {
+      const e = err as { code?: number; error?: { code?: number }; message?: string };
+      const code = e?.error?.code ?? e?.code;
+      const isRateLimit = code === -32016 || /rate limit/i.test(String(e?.message ?? ""));
+      if (!isRateLimit || attempt >= retries) throw err;
+      await sleep(800 * 2 ** attempt); // 0.8s, 1.6s, 3.2s, 6.4s
+    }
+  }
+}
+
 export async function fetchChainData(
   provider: ethers.JsonRpcProvider,
   usdyAddress?: string,
@@ -97,10 +122,10 @@ export async function fetchChainData(
       ? Math.round((sampledTransactions / sampledBlocks.length) * blockCount24h)
       : 0;
 
-  const [usdyTransfers, temple] = await Promise.all([
-    fetchUsdyTransfers(provider, dayAgoBlock, latest.number, usdyAddress),
-    fetchTempleSnapshot(provider, dayAgoBlock, latest.number, templeVaultAddress),
-  ]);
+  // Sequential (not Promise.all) — avoids bursting concurrent eth_getLogs,
+  // which the public Mantle RPC rate-limits.
+  const usdyTransfers = await fetchUsdyTransfers(provider, dayAgoBlock, latest.number, usdyAddress);
+  const temple = await fetchTempleSnapshot(provider, dayAgoBlock, latest.number, templeVaultAddress);
 
   const signals: ChainSignals = {
     sampledBlocks: sampledBlocks.length,
@@ -195,23 +220,23 @@ async function fetchTempleSnapshot(
     for (let start = fromBlock; start <= toBlock; start += chunkSize) {
       const end = Math.min(toBlock, start + chunkSize - 1);
 
-      const [mintLogs, burnLogs] = await Promise.all([
-        provider.getLogs({
-          address: templeVaultAddress,
-          fromBlock: start,
-          toBlock: end,
-          topics: [TRANSFER_TOPIC, mintTopic],
-        }),
-        provider.getLogs({
-          address: templeVaultAddress,
-          fromBlock: start,
-          toBlock: end,
-          topics: [TRANSFER_TOPIC, null, burnTopic],
-        }),
-      ]);
+      // Serial, with retry — keeps concurrent getLogs pressure low.
+      const mintLogs = await getLogsRetry(provider, {
+        address: templeVaultAddress,
+        fromBlock: start,
+        toBlock: end,
+        topics: [TRANSFER_TOPIC, mintTopic],
+      });
+      const burnLogs = await getLogsRetry(provider, {
+        address: templeVaultAddress,
+        fromBlock: start,
+        toBlock: end,
+        topics: [TRANSFER_TOPIC, null, burnTopic],
+      });
 
       newDisciples24h += mintLogs.length;
       exitedDisciples24h += burnLogs.length;
+      await sleep(150);
     }
 
     const discipleCount = Math.max(0, Number(nextId) - 1);
@@ -261,7 +286,7 @@ async function fetchUsdyTransfers(
 
   for (let start = fromBlock; start <= toBlock; start += chunkSize) {
     const end = Math.min(toBlock, start + chunkSize - 1);
-    const logs = await provider.getLogs({
+    const logs = await getLogsRetry(provider, {
       address: usdyAddress as `0x${string}`,
       fromBlock: start,
       toBlock: end,
@@ -272,6 +297,7 @@ async function fetchUsdyTransfers(
     for (const log of logs) {
       volume += BigInt(log.data);
     }
+    await sleep(150);
   }
 
   return { count, volume };
