@@ -77,16 +77,21 @@ const oracleClient = new OpenAI({
   apiKey: oracleKey,
   baseURL: "https://openrouter.ai/api/v1",
   defaultHeaders: OPENROUTER_HEADERS,
+  // Free OpenRouter models share an upstream pool and 429 intermittently.
+  // The SDK honours Retry-After, so a few retries usually rides out the spike.
+  maxRetries: 5,
 });
 const evaluatorClient = new OpenAI({
   apiKey: evaluatorKey,
   baseURL: "https://openrouter.ai/api/v1",
   defaultHeaders: OPENROUTER_HEADERS,
+  maxRetries: 5,
 });
 const demiurgeClient = new OpenAI({
   apiKey: demiurgeKey,
   baseURL: "https://openrouter.ai/api/v1",
   defaultHeaders: OPENROUTER_HEADERS,
+  maxRetries: 5,
 });
 
 const threshold = parseInt(FULFILLMENT_THRESHOLD);

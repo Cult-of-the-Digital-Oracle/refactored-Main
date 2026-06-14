@@ -44,4 +44,4 @@ jobs:
           # Run once and exit — no cron loop needed in CI
           CRON_SCHEDULE: ""
         run: npx tsx src/index.ts
-        timeout-minutes: 10
+        timeout-minutes: 15
