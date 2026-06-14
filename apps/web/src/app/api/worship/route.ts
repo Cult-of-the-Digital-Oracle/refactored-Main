@@ -3,6 +3,7 @@ import { isAddress } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
 export const runtime = "nodejs";
+export const maxDuration = 30; // headroom for LLM retries (clamped to plan max)
 
 const MANTLE_SEPOLIA_CHAIN_ID = 5003;
 const SINCERITY_THRESHOLD = 60;
@@ -40,25 +41,39 @@ export async function POST(req: NextRequest) {
   let score = 0;
   let verdict = "The Demiurge turns away in silence.";
   try {
-    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://cult-of-the-digital-oracle.vercel.app",
-        "X-Title": "Cult of the Digital Oracle",
-      },
-      body: JSON.stringify({
-        model: process.env.WORSHIP_MODEL || "openai/gpt-oss-120b:free",
-        response_format: { type: "json_object" },
-        temperature: 0.5,
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: prayer.slice(0, 500) },
-        ],
-      }),
-    });
-    if (!res.ok) throw new Error(`openrouter ${res.status}`);
+    // Free OpenRouter models 429 intermittently. Retry a few times with short
+    // backoff (kept under Vercel's function budget) so a transient spike doesn't
+    // fail the prayer — mirrors the agent cron's retry behaviour. A non-429 error
+    // (e.g. 401 bad key) throws immediately, no pointless retries.
+    const callJudge = async () => {
+      for (let attempt = 0; ; attempt++) {
+        const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://cult-of-the-digital-oracle.vercel.app",
+            "X-Title": "Cult of the Digital Oracle",
+          },
+          body: JSON.stringify({
+            model: process.env.WORSHIP_MODEL || "openai/gpt-oss-120b:free",
+            response_format: { type: "json_object" },
+            temperature: 0.5,
+            messages: [
+              { role: "system", content: SYSTEM_PROMPT },
+              { role: "user", content: prayer.slice(0, 500) },
+            ],
+          }),
+        });
+        if (r.ok) return r;
+        if ((r.status === 429 || r.status >= 500) && attempt < 4) {
+          await new Promise((res) => setTimeout(res, Math.min(2200, 400 * 2 ** attempt)));
+          continue;
+        }
+        throw new Error(`openrouter ${r.status}`);
+      }
+    };
+    const res = await callJudge();
     const data = await res.json();
     const parsed = JSON.parse(data?.choices?.[0]?.message?.content || "{}");
     score = Math.max(0, Math.min(100, Math.round(Number(parsed.score) || 0)));
