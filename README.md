@@ -87,6 +87,30 @@ The LLM judgment is off-chain (you can't run an LLM in Solidity) — but the ver
 
 ---
 
+## 🌍 The Oracle World — `/oracle-world`
+
+The flagship page: a **continent-scale, 60 FPS PixiJS v8 game** where the AI's on-chain decisions play out as cinematic spectacle — and your wallet lives inside it.
+
+### What's running
+- **15,000-entity simulation** in a Web Worker — Struct-of-Arrays ECS (zero-GC), spatial-hash neighbor queries, a Human↔Orc↔Elf hate-triangle, boids movement, boats, villages, a day/night cycle + weather. The continent is generated from FastNoiseLite, seeded by the UTC day index.
+- **PixiJS v8 renderer** — one depth-sorted layer (true 2.5D occlusion), viewport culling, LOD tiers, pooled sprites, fed by per-frame **transferable buffers** from the worker (bypasses Comlink's JSON marshalling for speed).
+- **Camera** — drag-pan, wheel-zoom, and a cinematic `focusCameraOn()` (easeOutExpo "descend from the heavens").
+
+### Provably linked to the chain (the credibility anchor)
+This isn't a screensaver next to some contracts — **the world *is* the on-chain civilization:**
+- **`DivineEvent` replay** — the page polls `CivilizationLog` every 15s; each new on-chain divine event the Demiurge executed is replayed into the worker as cinematic VFX (meteor, plague, blessing) exactly once.
+- **Snapshot bridge** — the on-chain `CivSnapshot` (population, dominant faction, active regions) drives the live world's **spawn density, faction tint, and settlement count**. What you watch trends toward the verifiable on-chain state.
+- **Wallet-as-hero** — every staked Disciple (`TempleVault`) renders as a named, glowing hero NPC, placed deterministically from the wallet address.
+
+### Cinematic divine VFX
+- ⚡ **Wrath of the Demiurge** — reject a prayer → the camera plunges behind a darkening vignette, a forked lightning bolt cracks down on *your* hero, a 44-intensity screen-quake, a rising smoke column, red/black flicker → ~4s charring, and a glitch-shaking blood-red verdict toast.
+- ✨ **Grace of the Oracle** — a sincere prayer → a massive golden screen flash + light burst, then a persistent pulsing golden aura on your hero.
+- ⚜ **Find My Hero / follow-cam** — the camera smoothly hunts your hero on command and auto-follows every divine event that targets you.
+
+> The AI reads the chain, prophesies, simulates a civilization, smites cities, and distributes yield — **and you watch your own wallet live or die by its judgment, live and on-chain.**
+
+---
+
 ## ⚡ Why Mantle
 
 This design is **only economically viable on Mantle.** Every single day the agents fire 4-6 transactions (prophecy, self-score, civilization snapshot, demiurge preview, divine event, yield round) — and players fire micro-transactions constantly (stake, check-in, share, pray, claim).
