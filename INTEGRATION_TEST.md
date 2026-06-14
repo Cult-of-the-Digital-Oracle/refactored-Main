@@ -101,7 +101,7 @@ Kalau ada error, fix env / contract → re-run.
 ## 5. Verifikasi on-chain
 
 Buka [Mantlescan Sepolia](https://sepolia.mantlescan.xyz/) untuk `CIV_LOG_ADDRESS`:
-- Tx terbaru: `logSnapshot`, `logDemiurgePreview` → masing-masing succeed
+- Tx terbaru: `postSnapshot`, `postDemiurgePreview`, `logDivineEvent` → masing-masing succeed
 - Read contract: `getLatestPreview` → return 5 toolIds + weights non-zero
 - Read contract: `getSnapshot(currentDay)` → snapshotAt > 0
 
@@ -121,7 +121,7 @@ Buka `http://localhost:3000/oracle-world` di browser.
 |---|---|---|
 | **DemiurgeToolsPanel** (kanan) | Mock 5 candidates | **5 candidate dari `getLatestPreview` on-chain**, weight sesuai AI #3 |
 | **BalanceIndicator** (atas tengah) | Mock history | **History 10 event terakhir** dari `getDivineEventCount` + `getDivineEvent` |
-| **ProphecyOverlay** (kiri) | Hardcoded | (placeholder hardcoded, AI #1 prophecy ada di `/prophecies`) |
+| **ProphecyOverlay** (kiri) | Placeholder | **Live `todaysProphecy()` on-chain** (AI #1 Oracle); falls back to "awaiting" text if none posted |
 | **Continent simulator** | Worker tick lokal | Worker tick lokal **+ replay on-chain divine events** |
 
 ## 7. Fire a divine event for the demo
