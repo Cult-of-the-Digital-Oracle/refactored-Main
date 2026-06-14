@@ -90,24 +90,33 @@ export async function POST(req: NextRequest) {
 
   // 3. Sincere → sign an EIP-712 WorshipPass for the CURRENT day (server-authoritative)
   const day = Math.floor(Date.now() / 86400000);
-  const account = privateKeyToAccount(signerKey);
-  const signature = await account.signTypedData({
-    domain: {
-      name: "CultProofOfWorship",
-      version: "1",
-      chainId: MANTLE_SEPOLIA_CHAIN_ID,
-      verifyingContract: powAddress,
-    },
-    types: {
-      WorshipPass: [
-        { name: "disciple", type: "address" },
-        { name: "day", type: "uint256" },
-        { name: "score", type: "uint8" },
-      ],
-    },
-    primaryType: "WorshipPass",
-    message: { disciple: address as `0x${string}`, day: BigInt(day), score },
-  });
-
-  return NextResponse.json({ passed: true, score, verdict, day, signature });
+  try {
+    // Normalise the key: strip whitespace + ensure 0x prefix. Guards against the
+    // common Vercel paste errors (missing 0x / trailing newline) that otherwise
+    // make privateKeyToAccount throw an unhandled 500.
+    const raw = signerKey.trim();
+    const pk = (raw.startsWith("0x") ? raw : `0x${raw}`) as `0x${string}`;
+    const account = privateKeyToAccount(pk);
+    const signature = await account.signTypedData({
+      domain: {
+        name: "CultProofOfWorship",
+        version: "1",
+        chainId: MANTLE_SEPOLIA_CHAIN_ID,
+        verifyingContract: powAddress,
+      },
+      types: {
+        WorshipPass: [
+          { name: "disciple", type: "address" },
+          { name: "day", type: "uint256" },
+          { name: "score", type: "uint8" },
+        ],
+      },
+      primaryType: "WorshipPass",
+      message: { disciple: address as `0x${string}`, day: BigInt(day), score },
+    });
+    return NextResponse.json({ passed: true, score, verdict, day, signature });
+  } catch (err) {
+    console.error("worship sign failed:", err);
+    return NextResponse.json({ error: "signing failed (check WORSHIP_SIGNER_KEY)" }, { status: 500 });
+  }
 }
