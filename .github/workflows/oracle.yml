@@ -32,7 +32,9 @@ jobs:
           TEMPLE_VAULT_ADDRESS: ${{ secrets.TEMPLE_VAULT_ADDRESS }}
           BLESSING_DISTRIBUTOR_ADDRESS: ${{ secrets.BLESSING_DISTRIBUTOR_ADDRESS }}
           USDY_ADDRESS: ${{ secrets.USDY_ADDRESS }}
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          CIV_LOG_ADDRESS: ${{ secrets.CIV_LOG_ADDRESS }}
+          # Agent routes all 3 AI roles via OpenRouter (code no longer reads GROQ_API_KEY).
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           FULFILLMENT_THRESHOLD: "70"
           # Run once and exit — no cron loop needed in CI
           CRON_SCHEDULE: ""
