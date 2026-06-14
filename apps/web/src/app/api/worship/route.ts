@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
   }
 
   const signerKey = process.env.WORSHIP_SIGNER_KEY as `0x${string}` | undefined;
-  const powAddress = process.env.NEXT_PUBLIC_PROOF_OF_WORSHIP_ADDRESS as `0x${string}` | undefined;
+  const powAddress = process.env.NEXT_PUBLIC_PROOF_OF_WORSHIP_ADDRESS?.trim() as `0x${string}` | undefined;
   const apiKey = process.env.WORSHIP_API_KEY || process.env.OPENROUTER_API_KEY;
   if (!signerKey || !powAddress || !apiKey) {
     return NextResponse.json({ error: "worship not configured" }, { status: 503 });

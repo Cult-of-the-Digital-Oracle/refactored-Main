@@ -4,7 +4,7 @@ export const CONTRACTS = {
   blessingDistributor: (process.env.NEXT_PUBLIC_BLESSING_DISTRIBUTOR_ADDRESS ?? "") as `0x${string}`,
   usdy: (process.env.NEXT_PUBLIC_USDY_ADDRESS ?? "") as `0x${string}`,
   civilizationLog: (process.env.NEXT_PUBLIC_CIVILIZATION_LOG_ADDRESS ?? "") as `0x${string}`,
-  proofOfWorship: (process.env.NEXT_PUBLIC_PROOF_OF_WORSHIP_ADDRESS ?? "") as `0x${string}`,
+  proofOfWorship: (process.env.NEXT_PUBLIC_PROOF_OF_WORSHIP_ADDRESS ?? "").trim() as `0x${string}`,
 } as const;
 
 export const PROOF_OF_WORSHIP_ABI = [
