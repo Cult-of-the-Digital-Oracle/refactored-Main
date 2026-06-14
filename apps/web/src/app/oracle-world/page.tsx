@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import * as Comlink from 'comlink';
-import { usePublicClient, useReadContract } from 'wagmi';
+import { usePublicClient, useReadContract, useAccount } from 'wagmi';
 
 import { SimWorldState, SimEntity, SimRegion, SimDivineEvent } from '../../lib/simulation/types';
 import { SimulationWorkerAPI } from '../../lib/simulation/worker';
@@ -18,6 +18,7 @@ import BalanceIndicator from '../../components/OracleWorld/BalanceIndicator';
 import EntityInfoCard from '../../components/OracleWorld/EntityInfoCard';
 import PixelFrame from '../../components/PixelFrame';
 import OnboardingOverlay from '../../components/OracleWorld/OnboardingOverlay';
+import WorshipAltar from '../../components/WorshipAltar';
 
 // Dynamically import WorldCanvas with SSR disabled to prevent PixiJS canvas initialization errors on server-side
 const WorldCanvas = dynamic(
@@ -104,6 +105,19 @@ export default function OracleWorldPage() {
 
   // On-Chain Synchronization States
   const publicClient = usePublicClient();
+  const { address } = useAccount();
+
+  // Proof of Worship — a rejected prayer smites the player's own hero with lightning.
+  const [strikeHero, setStrikeHero] = useState<{ tokenId: number; nonce: number } | null>(null);
+  const [smiteVerdict, setSmiteVerdict] = useState<string | null>(null);
+  const onPrayerRejected = (verdict: string) => {
+    const mine = address
+      ? disciples.find((d) => d.address.toLowerCase() === address.toLowerCase())
+      : undefined;
+    if (mine) setStrikeHero({ tokenId: mine.tokenId, nonce: Date.now() });
+    setSmiteVerdict(verdict);
+    setTimeout(() => setSmiteVerdict(null), 4500);
+  };
 
   // Real on-chain prophecy (AI #1 Oracle) — replaces the old hardcoded placeholder.
   const { data: onChainProphecy } = useReadContract({
@@ -403,11 +417,21 @@ export default function OracleWorldPage() {
         biomeGrid={biomeGrid}
         visualEvents={visualEvents}
         disciples={disciples}
+        strikeHero={strikeHero}
         weather={weather}
         onHoverEntity={setHoveredEntity}
         onHoverRegion={setHoveredRegion}
         onHoverDisciple={setHoveredDisciple}
       />
+
+      {smiteVerdict && (
+        <div className="absolute top-24 left-1/2 -translate-x-1/2 z-40 pointer-events-none">
+          <div className="bg-[#1a0a12]/95 border-2 border-[#ff0055] rounded px-5 py-3 shadow-[0_0_30px_rgba(255,0,85,0.5)] text-center animate-[pulse_0.5s_ease-out_2]">
+            <div className="text-[#ff0055] font-bold text-[12px] uppercase tracking-widest font-mono">⚡ The Demiurge Strikes</div>
+            <div className="text-stone-300 text-[10px] italic font-mono mt-1 max-w-xs">&ldquo;{smiteVerdict}&rdquo;</div>
+          </div>
+        </div>
+      )}
 
       {/* Floating hover card for a hero Disciple — viral share moment */}
       {hoveredDisciple && (
@@ -526,6 +550,7 @@ export default function OracleWorldPage() {
           
           {/* LEFT SIDEBAR HUD - Prophecy & Event Log */}
           <div className="flex flex-col gap-4 w-[46vw] max-w-[20rem] md:w-80 min-w-0 pointer-events-auto h-full justify-end max-h-[85%]">
+            <WorshipAltar onRejected={onPrayerRejected} closeOnReject />
             {showProphecy && (
               <div className="transition-all duration-300">
                 <ProphecyOverlay

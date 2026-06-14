@@ -7,7 +7,10 @@ import { CONTRACTS, PROOF_OF_WORSHIP_ABI } from "@/lib/contracts";
 
 type Phase = "idle" | "judging" | "rejected" | "signing" | "done";
 
-export default function WorshipAltar() {
+export default function WorshipAltar({
+  onRejected,
+  closeOnReject,
+}: { onRejected?: (verdict: string) => void; closeOnReject?: boolean } = {}) {
   const { address, isConnected } = useAccount();
   const { writeContractAsync } = useWriteContract();
 
@@ -48,6 +51,11 @@ export default function WorshipAltar() {
 
       // Insincere — the Demiurge denies the offering (lightning strike)
       if (!res.passed) {
+        onRejected?.(res.verdict ?? "The Demiurge finds you unworthy.");
+        if (closeOnReject) {
+          close();
+          return;
+        }
         setPhase("rejected");
         return;
       }

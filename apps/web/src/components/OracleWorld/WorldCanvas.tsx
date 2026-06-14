@@ -35,6 +35,8 @@ interface WorldCanvasProps {
   biomeGrid: Uint8Array | null;
   visualEvents: SimDivineEvent[];
   disciples: HeroDisciple[];
+  // When this nonce changes, smite the given hero (by tokenId) with lightning.
+  strikeHero?: { tokenId: number; nonce: number } | null;
   weather: 'none' | 'rain' | 'snow';
   onHoverEntity: (entity: SimEntity | null) => void;
   onHoverRegion: (region: SimRegion | null) => void;
@@ -384,6 +386,23 @@ export default function WorldCanvas(props: WorldCanvasProps) {
       else animateFlash(region.x, region.y, ev.polarity === 'good' ? 0x39ff14 : 0xff0055);
     }
   }, [props.visualEvents]);
+
+  // 5b. PROOF OF WORSHIP — the Demiurge smites an unworthy disciple's hero with a
+  // localized lightning strike (fired from a rejected prayer in the HUD).
+  useEffect(() => {
+    const s = props.strikeHero;
+    if (!s || !appReady) return;
+    const rec = heroSpritesRef.current.get(s.tokenId);
+    if (!rec || rec.sprite.destroyed) return;
+    animateLightning(rec.sprite.x, rec.sprite.y);
+    rec.sprite.tint = 0x335577; // charred
+    const t = setTimeout(() => {
+      const r = heroSpritesRef.current.get(s.tokenId);
+      if (r && !r.sprite.destroyed) r.sprite.tint = 0xffffff;
+    }, 1100);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.strikeHero?.nonce, appReady]);
 
   // ------ RENDER TICK -----------
   function renderTick() {
@@ -770,6 +789,119 @@ export default function WorldCanvas(props: WorldCanvasProps) {
       }
       if (frame > FALL_END + 20 && trail.length === 0) {
         meteor.destroy(); shadow.destroy(); ring.destroy();
+        app.ticker.remove(tick);
+      }
+    };
+    app.ticker.add(tick);
+  }
+
+  // ── Cinematic lightning strike (Proof of Worship — the Demiurge's wrath) ──
+  // Sky charges, a jagged bolt cracks down onto the hero, white flash + electric
+  // shockwave + ground scorch + falling sparks + camera shake. ~1 sec.
+  function animateLightning(targetX: number, targetY: number) {
+    const app = appRef.current, vfx = vfxLayerRef.current;
+    if (!app || !vfx) return;
+
+    const startY = targetY - 1400;
+
+    const charge = new Graphics();
+    charge.x = targetX; charge.y = targetY; charge.zIndex = 99990;
+    vfx.addChild(charge);
+
+    const bolt = new Graphics();
+    bolt.zIndex = 100000;
+    vfx.addChild(bolt);
+
+    const scorch = new Graphics();
+    scorch.x = targetX; scorch.y = targetY; scorch.zIndex = 2;
+    vfx.addChild(scorch);
+
+    const ring = new Graphics();
+    ring.x = targetX; ring.y = targetY; ring.zIndex = 99991;
+    vfx.addChild(ring);
+
+    const sparks: Array<{ g: Graphics; vx: number; vy: number; life: number; max: number }> = [];
+
+    const drawBolt = (jitter: number, alpha: number) => {
+      bolt.clear();
+      const segs = 16;
+      const pts: Array<[number, number]> = [];
+      for (let i = 0; i <= segs; i++) {
+        const t = i / segs;
+        const jx = i > 0 && i < segs ? (Math.random() - 0.5) * jitter : 0;
+        pts.push([targetX + jx, startY + (targetY - startY) * t]);
+      }
+      // outer glow
+      bolt.moveTo(pts[0][0], pts[0][1]);
+      for (let i = 1; i < pts.length; i++) bolt.lineTo(pts[i][0], pts[i][1]);
+      bolt.stroke({ color: 0x66ccff, width: 11, alpha: alpha * 0.45, cap: 'round', join: 'round' });
+      // a forked branch for menace
+      const bi = (segs * 0.55) | 0;
+      bolt.moveTo(pts[bi][0], pts[bi][1]);
+      bolt.lineTo(pts[bi][0] + (Math.random() - 0.5) * 90, pts[bi][1] + 80);
+      bolt.stroke({ color: 0x99ddff, width: 4, alpha: alpha * 0.5, cap: 'round', join: 'round' });
+      // white-hot core
+      bolt.moveTo(pts[0][0], pts[0][1]);
+      for (let i = 1; i < pts.length; i++) bolt.lineTo(pts[i][0], pts[i][1]);
+      bolt.stroke({ color: 0xffffff, width: 3, alpha, cap: 'round', join: 'round' });
+    };
+
+    let frame = 0;
+    const CHARGE = 8, STRIKE = 9;
+    const tick = () => {
+      frame++;
+
+      // Phase 1: charge gathers at the target
+      if (frame <= CHARGE) {
+        const t = frame / CHARGE;
+        charge.clear();
+        charge.circle(0, 0, 24 + t * 26).fill({ color: 0x66ccff, alpha: 0.12 + t * 0.28 });
+      }
+
+      // Phase 2: STRIKE
+      if (frame === STRIKE) {
+        drawBolt(64, 1);
+        flashScreen(0xcdefff, 0.82, 7);
+        triggerScreenShake(24);
+        charge.visible = false;
+        scorch.clear();
+        scorch.ellipse(0, 0, 28, 11).fill({ color: 0x080808, alpha: 0.85 });
+        for (let i = 0; i < 24; i++) {
+          const a = Math.random() * Math.PI * 2;
+          const sp = 3 + Math.random() * 7;
+          const g = new Graphics();
+          g.circle(0, 0, 1.5 + Math.random() * 2).fill({ color: Math.random() < 0.5 ? 0xffffff : 0x88ddff });
+          g.x = targetX; g.y = targetY; g.zIndex = 99999;
+          vfx.addChild(g);
+          sparks.push({ g, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 3, life: 24, max: 24 });
+        }
+      }
+
+      // Phase 3: bolt flickers then clears
+      if (frame > STRIKE && frame <= STRIKE + 6) {
+        if (frame % 2 === 0) { drawBolt(46, 1 - (frame - STRIKE) / 7); bolt.visible = true; }
+        else bolt.visible = false;
+      }
+      if (frame === STRIKE + 7) { bolt.visible = true; bolt.clear(); }
+
+      // expanding electric shockwave ring
+      if (frame >= STRIKE && frame <= STRIKE + 18) {
+        const t = (frame - STRIKE) / 18;
+        ring.clear();
+        ring.circle(0, 0, 10 + t * 80).stroke({ color: 0x66ccff, width: 3 * (1 - t), alpha: 0.85 * (1 - t) });
+      }
+
+      // sparks arc out + fall
+      for (let i = sparks.length - 1; i >= 0; i--) {
+        const s = sparks[i];
+        s.life--; s.vy += 0.45;
+        s.g.x += s.vx; s.g.y += s.vy;
+        s.g.alpha = s.life / s.max;
+        if (s.life <= 0) { s.g.destroy(); sparks.splice(i, 1); }
+      }
+
+      if (frame > STRIKE + 26 && sparks.length === 0) {
+        charge.destroy(); bolt.destroy(); ring.destroy(); scorch.destroy();
         app.ticker.remove(tick);
       }
     };
