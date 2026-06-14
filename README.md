@@ -32,6 +32,23 @@ An AI that reads the chain, runs a civilization, **and electrocutes you for a lo
 
 ---
 
+## 🎬 See It In Action
+
+<div align="center">
+
+| | |
+|:---:|:---:|
+| ![The Demiurge smites a lazy prayer with lightning](docs/media/lightning-strike.gif) | ![The living AI civilization](docs/media/oracle-world.gif) |
+| ⚡ **Smited for a lazy prayer** | 🌍 **The living AI civilization** |
+| ![The Altar of Worship](docs/media/worship-altar.gif) | ![Stake and become a soulbound Disciple](docs/media/temple-stake.gif) |
+| 🙏 **The Altar of Worship** | 🔥 **Stake USDY → soulbound Disciple** |
+
+</div>
+
+> 📹 _Clips live in [`docs/media/`](docs/media/) — recorded per the [capture guide](docs/media/CAPTURE_GUIDE.md)._
+
+---
+
 ## 🧠 Core Architecture — The 3-AI Loop
 
 The entire world is driven by an unattended daily cron. No human in the loop.
