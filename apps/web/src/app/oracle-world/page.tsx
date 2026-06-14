@@ -112,21 +112,23 @@ export default function OracleWorldPage() {
   const [blessHero, setBlessHero] = useState<{ tokenId: number; nonce: number } | null>(null);
   const [focusHero, setFocusHero] = useState<{ tokenId: number; nonce: number } | null>(null);
   const [smiteVerdict, setSmiteVerdict] = useState<string | null>(null);
+  const [vignette, setVignette] = useState(false);
+  const flashVignette = () => { setVignette(true); setTimeout(() => setVignette(false), 3500); };
   const myHero = () =>
     address ? disciples.find((d) => d.address.toLowerCase() === address.toLowerCase()) : undefined;
   const onPrayerRejected = (verdict: string) => {
     const m = myHero();
-    if (m) setStrikeHero({ tokenId: m.tokenId, nonce: Date.now() });
+    if (m) { setStrikeHero({ tokenId: m.tokenId, nonce: Date.now() }); flashVignette(); }
     setSmiteVerdict(verdict);
     setTimeout(() => setSmiteVerdict(null), 4500);
   };
   const onPrayerAccepted = () => {
     const m = myHero();
-    if (m) setBlessHero({ tokenId: m.tokenId, nonce: Date.now() });
+    if (m) { setBlessHero({ tokenId: m.tokenId, nonce: Date.now() }); flashVignette(); }
   };
   const findMyHero = () => {
     const m = myHero();
-    if (m) setFocusHero({ tokenId: m.tokenId, nonce: Date.now() });
+    if (m) { setFocusHero({ tokenId: m.tokenId, nonce: Date.now() }); flashVignette(); }
   };
 
   // Real on-chain prophecy (AI #1 Oracle) — replaces the old hardcoded placeholder.
@@ -426,6 +428,15 @@ export default function OracleWorldPage() {
       <div className="absolute inset-0 pointer-events-none z-40 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%)] bg-[length:100%_4px] opacity-10" />
 
       {/* World Canvas Visualizer at background (z-0) */}
+      {/* Divine Eye vignette — darkens the edges while the camera focuses a hero. */}
+      <div
+        className="absolute inset-0 pointer-events-none z-[2] transition-opacity duration-700"
+        style={{
+          background: 'radial-gradient(ellipse at center, transparent 32%, rgba(0,0,0,0.82) 100%)',
+          opacity: vignette ? 1 : 0,
+        }}
+      />
+
       {/* Faction tint — the world's colour reflects the on-chain dominant faction. */}
       {onChainSnapshot && (
         <div
@@ -458,9 +469,9 @@ export default function OracleWorldPage() {
 
       {smiteVerdict && (
         <div className="absolute top-24 left-1/2 -translate-x-1/2 z-40 pointer-events-none">
-          <div className="bg-[#1a0a12]/95 border-2 border-[#ff0055] rounded px-5 py-3 shadow-[0_0_30px_rgba(255,0,85,0.5)] text-center animate-[pulse_0.5s_ease-out_2]">
-            <div className="text-[#ff0055] font-bold text-[12px] uppercase tracking-widest font-mono">⚡ The Demiurge Strikes</div>
-            <div className="text-stone-300 text-[10px] italic font-mono mt-1 max-w-xs">&ldquo;{smiteVerdict}&rdquo;</div>
+          <div className="demiurge-strike-toast bg-[#1a0000]/95 border-4 border-[#ff0022] rounded px-6 py-3 shadow-[0_0_50px_rgba(255,0,34,0.85)] text-center">
+            <div className="text-[#ff2233] font-bold text-[14px] uppercase tracking-[0.22em] font-mono drop-shadow-[0_0_8px_rgba(255,0,0,0.95)]">⚡ THE DEMIURGE STRIKES ⚡</div>
+            <div className="text-[#ffb3b3] text-[10px] italic font-mono mt-1.5 max-w-xs">&ldquo;{smiteVerdict}&rdquo;</div>
           </div>
         </div>
       )}

@@ -400,12 +400,13 @@ export default function WorldCanvas(props: WorldCanvasProps) {
     if (!rec || rec.sprite.destroyed) return;
     animateLightning(rec.sprite.x, rec.sprite.y);
     focusCameraOn(rec.sprite.x, rec.sprite.y, 1.8); // follow-cam the smite
-    rec.sprite.tint = 0x335577; // charred
-    const t = setTimeout(() => {
-      const r = heroSpritesRef.current.get(s.tokenId);
-      if (r && !r.sprite.destroyed) r.sprite.tint = 0xffffff;
-    }, 1100);
-    return () => clearTimeout(t);
+    animateSmokeColumn(rec.sprite.x, rec.sprite.y); // smoke rises from the smited hero
+    // violent red/black flicker, then hold charred ~3.8s
+    const sprite = rec.sprite;
+    const flicker = [0xff2200, 0x000000, 0xff3311, 0x111111, 0x335577];
+    const timers = flicker.map((c, i) => setTimeout(() => { if (!sprite.destroyed) sprite.tint = c; }, i * 90));
+    const t = setTimeout(() => { if (!sprite.destroyed) sprite.tint = 0xffffff; }, 3800);
+    return () => { clearTimeout(t); timers.forEach(clearTimeout); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.strikeHero?.nonce, appReady]);
 
@@ -417,6 +418,27 @@ export default function WorldCanvas(props: WorldCanvasProps) {
     if (!rec || rec.sprite.destroyed) return;
     focusCameraOn(rec.sprite.x, rec.sprite.y, 1.8);
     animateBlessing(rec.sprite.x, rec.sprite.y);
+    // persistent pulsing golden aura on the blessed hero ~4s
+    const app = appRef.current;
+    const sprite = rec.sprite, glow = rec.glow;
+    let frame = 0; const DUR = 240;
+    const aura = () => {
+      frame++;
+      if (!app || sprite.destroyed) { app?.ticker.remove(aura); return; }
+      const pulse = 0.5 + 0.5 * Math.sin(frame * 0.16);
+      sprite.tint = 0xffe08a;
+      glow.alpha = 0.2 + pulse * 0.6;
+      glow.scale.set(1 + pulse * 1.1);
+      if (frame >= DUR) {
+        sprite.tint = 0xffffff; glow.alpha = 0.18; glow.scale.set(1);
+        app.ticker.remove(aura);
+      }
+    };
+    app?.ticker.add(aura);
+    return () => {
+      app?.ticker.remove(aura);
+      if (!sprite.destroyed) { sprite.tint = 0xffffff; glow.alpha = 0.18; glow.scale.set(1); }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.blessHero?.nonce, appReady]);
 
@@ -887,8 +909,8 @@ export default function WorldCanvas(props: WorldCanvasProps) {
       // Phase 2: STRIKE
       if (frame === STRIKE) {
         drawBolt(64, 1);
-        flashScreen(0xcdefff, 0.82, 7);
-        triggerScreenShake(24);
+        flashScreen(0xcdefff, 0.95, 12);
+        triggerScreenShake(44, 40);
         charge.visible = false;
         scorch.clear();
         scorch.ellipse(0, 0, 28, 11).fill({ color: 0x080808, alpha: 0.85 });
@@ -941,8 +963,9 @@ export default function WorldCanvas(props: WorldCanvasProps) {
     const sw = app.screen.width, sh = app.screen.height;
     const startX = world.x, startY = world.y, startS = world.scale.x;
     const targetS = Math.max(0.05, Math.min(4, targetZoom));
-    let f = 0; const DUR = 32;
-    const ease = (t: number) => 1 - Math.pow(1 - t, 3); // easeOutCubic
+    let f = 0; const DUR = 46;
+    // easeOutExpo — plunges from the heavens, decelerates hard onto the target
+    const ease = (t: number) => (t >= 1 ? 1 : 1 - Math.pow(2, -10 * t));
     const tick = () => {
       f++;
       const t = ease(Math.min(1, f / DUR));
@@ -1328,6 +1351,23 @@ export default function WorldCanvas(props: WorldCanvasProps) {
     const app = appRef.current, vfx = vfxLayerRef.current;
     if (!app || !vfx) return;
 
+    // Massive golden screen flash + descending light burst — the heavens open.
+    flashScreen(0xffe9a8, 0.7, 16);
+    triggerScreenShake(8, 14);
+    const burst = new Graphics();
+    burst.circle(0, 0, 70).fill({ color: 0xfff2c0, alpha: 0.9 });
+    burst.x = x; burst.y = y; burst.zIndex = 99200;
+    vfx.addChild(burst);
+    let bf = 0;
+    const burstTick = () => {
+      bf++;
+      const bt = bf / 18;
+      burst.scale.set(1 + bt * 3.5);
+      burst.alpha = Math.max(0, 0.9 * (1 - bt));
+      if (bf >= 18) { burst.destroy(); app.ticker.remove(burstTick); }
+    };
+    app.ticker.add(burstTick);
+
     // Sky beam descending column (golden gradient look approximated with stacked rects)
     const beam = new Graphics();
     beam.rect(-50, -700, 100, 700)
@@ -1476,13 +1516,13 @@ export default function WorldCanvas(props: WorldCanvasProps) {
   }
 
   // Eased screen shake — amplitude decays cubically (more punch up front)
-  function triggerScreenShake(initial: number = 14) {
+  function triggerScreenShake(initial: number = 14, total: number = 22) {
     const app = appRef.current;
     if (!app) return;
     const stage = app.stage;
     const origX = stage.x, origY = stage.y;
     let frame = 0;
-    const TOTAL = 22;
+    const TOTAL = total;
     const shake = () => {
       frame++;
       const t = 1 - frame / TOTAL;
