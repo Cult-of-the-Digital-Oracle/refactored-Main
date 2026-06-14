@@ -33,6 +33,7 @@ jobs:
           BLESSING_DISTRIBUTOR_ADDRESS: ${{ secrets.BLESSING_DISTRIBUTOR_ADDRESS }}
           USDY_ADDRESS: ${{ secrets.USDY_ADDRESS }}
           CIV_LOG_ADDRESS: ${{ secrets.CIV_LOG_ADDRESS }}
+          PROOF_OF_WORSHIP_ADDRESS: ${{ secrets.PROOF_OF_WORSHIP_ADDRESS }}
           # Agent routes all 3 AI roles via OpenRouter (code no longer reads GROQ_API_KEY).
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           # Default to a free OpenRouter model so no credit top-up is needed.

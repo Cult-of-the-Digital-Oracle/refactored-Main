@@ -41,6 +41,7 @@ const {
   CIV_ENGINE_PRIVATE_KEY,
   CIV_STATE_FILE,
   DEMIURGE_STATE_FILE,
+  PROOF_OF_WORSHIP_ADDRESS,
 } = process.env;
 
 // Resolve effective keys: per-agent override > shared fallback
@@ -255,6 +256,17 @@ async function runOracleCycle() {
       console.log(`Demiurge preview posted on-chain successfully: ${prevHash}`);
     } catch (err) {
       console.error("Demiurge decision failed:", err);
+    }
+  }
+
+  // ── Refill the Proof of Worship reward pool so sincere prayers never run dry ─
+  if (PROOF_OF_WORSHIP_ADDRESS) {
+    try {
+      const usdyMint = new ethers.Contract(USDY_ADDRESS!, ["function mint(address,uint256) external"], signer);
+      await (await usdyMint.mint(PROOF_OF_WORSHIP_ADDRESS, ethers.parseUnits("10", 6))).wait();
+      console.log("Worship pool topped up: +10 USDY");
+    } catch (e) {
+      console.warn("Worship top-up skipped:", (e as Error)?.message ?? e);
     }
   }
 
