@@ -122,8 +122,17 @@ async function runOracleCycle() {
   const civSnapshot = buildSnapshot(worldState);
   
   console.log(`Posting daily civilization snapshot to CivilizationLog.sol (day ${currentDay})...`);
-  const snapHash = await postSnapshotToChain(civEngineSigner, CIV_LOG_ADDRESS!, currentDay, civSnapshot);
-  console.log(`Snapshot posted successfully: ${snapHash}`);
+  try {
+    const snapHash = await postSnapshotToChain(civEngineSigner, CIV_LOG_ADDRESS!, currentDay, civSnapshot);
+    console.log(`Snapshot posted successfully: ${snapHash}`);
+  } catch (err: unknown) {
+    // One snapshot per UTC day is enforced on-chain (SnapshotAlreadyExists). In
+    // DEMO_MODE (30s cron) every cycle after the first of the day reverts here —
+    // that's expected. Don't abort the rest of the cycle (eval/prophecy/demiurge).
+    const msg = (err as { shortMessage?: string; message?: string })?.shortMessage
+      ?? (err as { message?: string })?.message ?? String(err);
+    console.warn(`Snapshot post skipped (continuing cycle): ${msg}`);
+  }
 
   // B. Fetch on-chain metrics
   const chainData = await fetchChainData(provider, USDY_ADDRESS!, TEMPLE_VAULT_ADDRESS!);
