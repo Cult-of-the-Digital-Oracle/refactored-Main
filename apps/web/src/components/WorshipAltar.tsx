@@ -9,8 +9,9 @@ type Phase = "idle" | "judging" | "rejected" | "signing" | "done";
 
 export default function WorshipAltar({
   onRejected,
+  onAccepted,
   closeOnReject,
-}: { onRejected?: (verdict: string) => void; closeOnReject?: boolean } = {}) {
+}: { onRejected?: (verdict: string) => void; onAccepted?: () => void; closeOnReject?: boolean } = {}) {
   const { address, isConnected } = useAccount();
   const { writeContractAsync } = useWriteContract();
 
@@ -68,6 +69,7 @@ export default function WorshipAltar({
         functionName: "worship",
         args: [BigInt(res.day), res.score, res.signature as `0x${string}`],
       });
+      onAccepted?.();
       setPhase("done");
     } catch (e: unknown) {
       const msg =

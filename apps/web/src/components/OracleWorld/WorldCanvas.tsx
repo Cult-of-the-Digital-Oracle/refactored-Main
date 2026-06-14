@@ -37,6 +37,10 @@ interface WorldCanvasProps {
   disciples: HeroDisciple[];
   // When this nonce changes, smite the given hero (by tokenId) with lightning.
   strikeHero?: { tokenId: number; nonce: number } | null;
+  // When this nonce changes, bless the given hero with a golden beam.
+  blessHero?: { tokenId: number; nonce: number } | null;
+  // When this nonce changes, pan + zoom the camera to center the given hero.
+  focusHero?: { tokenId: number; nonce: number } | null;
   weather: 'none' | 'rain' | 'snow';
   onHoverEntity: (entity: SimEntity | null) => void;
   onHoverRegion: (region: SimRegion | null) => void;
@@ -395,6 +399,7 @@ export default function WorldCanvas(props: WorldCanvasProps) {
     const rec = heroSpritesRef.current.get(s.tokenId);
     if (!rec || rec.sprite.destroyed) return;
     animateLightning(rec.sprite.x, rec.sprite.y);
+    focusCameraOn(rec.sprite.x, rec.sprite.y, 1.8); // follow-cam the smite
     rec.sprite.tint = 0x335577; // charred
     const t = setTimeout(() => {
       const r = heroSpritesRef.current.get(s.tokenId);
@@ -403,6 +408,27 @@ export default function WorldCanvas(props: WorldCanvasProps) {
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.strikeHero?.nonce, appReady]);
+
+  // 5c. Blessing beam on an accepted prayer — golden sky-beam on the player's hero.
+  useEffect(() => {
+    const b = props.blessHero;
+    if (!b || !appReady) return;
+    const rec = heroSpritesRef.current.get(b.tokenId);
+    if (!rec || rec.sprite.destroyed) return;
+    focusCameraOn(rec.sprite.x, rec.sprite.y, 1.8);
+    animateBlessing(rec.sprite.x, rec.sprite.y);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.blessHero?.nonce, appReady]);
+
+  // 5d. Find My Hero — smoothly pan + zoom the camera to the player's hero.
+  useEffect(() => {
+    const f = props.focusHero;
+    if (!f || !appReady) return;
+    const rec = heroSpritesRef.current.get(f.tokenId);
+    if (!rec || rec.sprite.destroyed) return;
+    focusCameraOn(rec.sprite.x, rec.sprite.y, 1.6);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.focusHero?.nonce, appReady]);
 
   // ------ RENDER TICK -----------
   function renderTick() {
@@ -904,6 +930,28 @@ export default function WorldCanvas(props: WorldCanvasProps) {
         charge.destroy(); bolt.destroy(); ring.destroy(); scorch.destroy();
         app.ticker.remove(tick);
       }
+    };
+    app.ticker.add(tick);
+  }
+
+  // ── Smooth camera focus — pan + zoom to center a world point ─────────────
+  function focusCameraOn(wx: number, wy: number, targetZoom = 1.8) {
+    const app = appRef.current, world = worldContainerRef.current;
+    if (!app || !world) return;
+    const sw = app.screen.width, sh = app.screen.height;
+    const startX = world.x, startY = world.y, startS = world.scale.x;
+    const targetS = Math.max(0.05, Math.min(4, targetZoom));
+    let f = 0; const DUR = 32;
+    const ease = (t: number) => 1 - Math.pow(1 - t, 3); // easeOutCubic
+    const tick = () => {
+      f++;
+      const t = ease(Math.min(1, f / DUR));
+      const s = startS + (targetS - startS) * t;
+      world.scale.set(s);
+      // lerp toward centering (wx,wy) on screen at the current scale
+      world.x = startX + ((sw / 2 - wx * s) - startX) * t;
+      world.y = startY + ((sh / 2 - wy * s) - startY) * t;
+      if (f >= DUR) app.ticker.remove(tick);
     };
     app.ticker.add(tick);
   }

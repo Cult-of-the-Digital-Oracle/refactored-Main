@@ -18,6 +18,9 @@ import {
 const MAX_BOATS = 300;
 const BOAT_SLOTS = 3;
 
+// Bridge: how many settlement landmarks the on-chain snapshot has added (dedup).
+let civSettlementsPlaced = 0;
+
 // ----- SoA storage -----
 const PositionX = new Float32Array(MAX_ENTITIES);
 const PositionY = new Float32Array(MAX_ENTITIES);
@@ -739,6 +742,7 @@ const simulationAPI = {
     tickCount = 0;
     entityFreeCursor = 0;
     buildingFreeCursor = 0;
+    civSettlementsPlaced = 0;
 
     IsActive.fill(0);
     BActive.fill(0);
@@ -946,6 +950,44 @@ const simulationAPI = {
       activeRegionsCount: regions.filter(r => r.isActive).length,
       lastUpdatedAt: Math.floor(Date.now() / 1000),
     };
+  },
+
+  // Bridge the live world toward the on-chain CivilizationLog snapshot. Growth-only
+  // + per-call caps + settlement dedup → purely additive, never destabilizes the sim.
+  applyCivSnapshot(snap: { totalPopulation: number; dominantFaction: number; activeRegions: number }) {
+    if (!map || regions.length === 0) return;
+    // on-chain dominantFaction: 0=believer→HUMAN(base 10), 1=apostate→ORC(base 20), 2=balanced→ELF(base 30)
+    const base = snap.dominantFaction === 0 ? 10 : snap.dominantFaction === 1 ? 20 : 30;
+    const race = base === 10 ? RACE.HUMAN : base === 20 ? RACE.ORC : RACE.ELF;
+
+    // 1. Spawn density — trend the live population toward a scaled on-chain target.
+    let live = 0;
+    for (let i = 0; i < MAX_ENTITIES; i++) if (IsActive[i]) live++;
+    const target = Math.max(150, Math.min(3000, Math.round(snap.totalPopulation * 4)));
+    const deficit = Math.min(300, target - live); // cap spawn batch per call
+    for (let n = 0; n < deficit; n++) {
+      const r = regions[(rng() * regions.length) | 0];
+      let sx = r.x, sy = r.y;
+      for (let t = 0; t < 12; t++) {
+        const a = rng() * Math.PI * 2, d = rng() * 600;
+        const cx = r.x + Math.cos(a) * d, cy = r.y + Math.sin(a) * d;
+        if (!map.isWaterAtPx(cx, cy)) { sx = cx; sy = cy; break; }
+      }
+      spawnEntity(base + ((rng() * 10) | 0), sx, sy, r.id);
+    }
+
+    // 2. Settlements — landmark buildings scaled by activeRegions (deduped, capped).
+    const wantSettlements = Math.min(10, Math.max(0, snap.activeRegions) * 2);
+    while (civSettlementsPlaced < wantSettlements) {
+      const r = regions[(rng() * regions.length) | 0];
+      const a = rng() * Math.PI * 2, d = 180 + rng() * 260;
+      const x = r.x + Math.cos(a) * d, y = r.y + Math.sin(a) * d;
+      if (!map.isWaterAtPx(x, y)) {
+        const id = spawnBuilding(race, x, y);
+        if (id !== -1) { BSubType[id] = civSettlementsPlaced % 2 === 0 ? 21 : 2; BAge[id] = 80; }
+      }
+      civSettlementsPlaced++;
+    }
   },
 
   triggerDivineTool(toolId: number, targetRegionId: number): SimDivineEvent | null {

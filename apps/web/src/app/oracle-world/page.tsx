@@ -107,16 +107,26 @@ export default function OracleWorldPage() {
   const publicClient = usePublicClient();
   const { address } = useAccount();
 
-  // Proof of Worship — a rejected prayer smites the player's own hero with lightning.
+  // Proof of Worship — the player's own hero reacts in the world to the AI's verdict.
   const [strikeHero, setStrikeHero] = useState<{ tokenId: number; nonce: number } | null>(null);
+  const [blessHero, setBlessHero] = useState<{ tokenId: number; nonce: number } | null>(null);
+  const [focusHero, setFocusHero] = useState<{ tokenId: number; nonce: number } | null>(null);
   const [smiteVerdict, setSmiteVerdict] = useState<string | null>(null);
+  const myHero = () =>
+    address ? disciples.find((d) => d.address.toLowerCase() === address.toLowerCase()) : undefined;
   const onPrayerRejected = (verdict: string) => {
-    const mine = address
-      ? disciples.find((d) => d.address.toLowerCase() === address.toLowerCase())
-      : undefined;
-    if (mine) setStrikeHero({ tokenId: mine.tokenId, nonce: Date.now() });
+    const m = myHero();
+    if (m) setStrikeHero({ tokenId: m.tokenId, nonce: Date.now() });
     setSmiteVerdict(verdict);
     setTimeout(() => setSmiteVerdict(null), 4500);
+  };
+  const onPrayerAccepted = () => {
+    const m = myHero();
+    if (m) setBlessHero({ tokenId: m.tokenId, nonce: Date.now() });
+  };
+  const findMyHero = () => {
+    const m = myHero();
+    if (m) setFocusHero({ tokenId: m.tokenId, nonce: Date.now() });
   };
 
   // Real on-chain prophecy (AI #1 Oracle) — replaces the old hardcoded placeholder.
@@ -263,6 +273,12 @@ export default function OracleWorldPage() {
         
         if (snap && snap.snapshotAt > 0n) {
           setOnChainSnapshot(snap);
+          // Bridge: drive the live world toward the verifiable on-chain civilization.
+          workerApiRef.current?.applyCivSnapshot({
+            totalPopulation: Number(snap.totalPopulation),
+            dominantFaction: Number(snap.dominantFaction),
+            activeRegions: Number(snap.activeRegions),
+          }).catch(() => {});
         }
       } catch (err) {
         console.warn('Failed to sync with on-chain CivilizationLog contract:', err);
@@ -410,6 +426,20 @@ export default function OracleWorldPage() {
       <div className="absolute inset-0 pointer-events-none z-40 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%)] bg-[length:100%_4px] opacity-10" />
 
       {/* World Canvas Visualizer at background (z-0) */}
+      {/* Faction tint — the world's colour reflects the on-chain dominant faction. */}
+      {onChainSnapshot && (
+        <div
+          className="absolute inset-0 pointer-events-none z-[1] transition-colors duration-1000"
+          style={{
+            backgroundColor:
+              Number(onChainSnapshot.dominantFaction) === 0 ? '#3aa0ff'
+                : Number(onChainSnapshot.dominantFaction) === 1 ? '#ff3355'
+                  : '#39ff14',
+            opacity: 0.07,
+            mixBlendMode: 'overlay',
+          }}
+        />
+      )}
       <WorldCanvas
         worker={workerRef.current}
         workerApi={workerApiRef.current}
@@ -418,6 +448,8 @@ export default function OracleWorldPage() {
         visualEvents={visualEvents}
         disciples={disciples}
         strikeHero={strikeHero}
+        blessHero={blessHero}
+        focusHero={focusHero}
         weather={weather}
         onHoverEntity={setHoveredEntity}
         onHoverRegion={setHoveredRegion}
@@ -542,6 +574,15 @@ export default function OracleWorldPage() {
                 ❔ HELP
               </PixelFrame>
             </button>
+            <button
+              onClick={findMyHero}
+              className="pointer-events-auto active:translate-y-0.5 transition-all cursor-pointer"
+              aria-label="Find my hero"
+            >
+              <PixelFrame className="bg-[#16213e]/90 text-[#ffd86b] hover:text-[#ffe066] px-2.5 py-1.5 text-[9px] font-bold tracking-widest uppercase" thickness={2}>
+                ⚜ FIND MY HERO
+              </PixelFrame>
+            </button>
           </div>
         </header>
 
@@ -550,7 +591,7 @@ export default function OracleWorldPage() {
           
           {/* LEFT SIDEBAR HUD - Prophecy & Event Log */}
           <div className="flex flex-col gap-4 w-[46vw] max-w-[20rem] md:w-80 min-w-0 pointer-events-auto h-full justify-end max-h-[85%]">
-            <WorshipAltar onRejected={onPrayerRejected} closeOnReject />
+            <WorshipAltar onRejected={onPrayerRejected} onAccepted={onPrayerAccepted} closeOnReject />
             {showProphecy && (
               <div className="transition-all duration-300">
                 <ProphecyOverlay
