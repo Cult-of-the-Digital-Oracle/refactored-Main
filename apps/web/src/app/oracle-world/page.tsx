@@ -17,6 +17,7 @@ import EventLog from '../../components/OracleWorld/EventLog';
 import BalanceIndicator from '../../components/OracleWorld/BalanceIndicator';
 import EntityInfoCard from '../../components/OracleWorld/EntityInfoCard';
 import PixelFrame from '../../components/PixelFrame';
+import OnboardingOverlay from '../../components/OracleWorld/OnboardingOverlay';
 
 // Dynamically import WorldCanvas with SSR disabled to prevent PixiJS canvas initialization errors on server-side
 const WorldCanvas = dynamic(
@@ -92,6 +93,7 @@ export default function OracleWorldPage() {
   // UI state toggles
   const [isMounted, setIsMounted] = useState(false);
   const [showSandbox, setShowSandbox] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [showProphecy, setShowProphecy] = useState(true);
   const [showLogs, setShowLogs] = useState(true);
   const [showDivinePanel, setShowDivinePanel] = useState(true);
@@ -130,6 +132,10 @@ export default function OracleWorldPage() {
     const d = Math.floor(Date.now() / 86400000);
     setDayIndex(d);
     setNextExecutionTime(d * 86400000 + 86400000);
+    // First-visit onboarding for new users / judges landing cold on this page.
+    try {
+      if (!localStorage.getItem('oracle-world-onboarded-v1')) setShowOnboarding(true);
+    } catch { /* SSR / privacy mode — skip */ }
   }, []);
 
   // Sync on-chain Demiurge parameters and historical balance from CivilizationLog
@@ -379,6 +385,13 @@ export default function OracleWorldPage() {
 
   return (
     <div className="fixed inset-0 w-screen h-screen bg-[#07070c] text-stone-200 select-none font-mono overflow-hidden">
+      <OnboardingOverlay
+        open={showOnboarding}
+        onClose={() => {
+          try { localStorage.setItem('oracle-world-onboarded-v1', '1'); } catch { /* ignore */ }
+          setShowOnboarding(false);
+        }}
+      />
       {/* Decorative CRT Scanline Overlay */}
       <div className="absolute inset-0 pointer-events-none z-40 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%)] bg-[length:100%_4px] opacity-10" />
 
@@ -494,6 +507,15 @@ export default function OracleWorldPage() {
             >
               <PixelFrame className={`${showSandbox ? 'bg-[#ff00ff]/10 text-[#ff00ff] animate-pulse' : 'bg-[#0f1118]/80 text-stone-500'} px-2.5 py-1.5 text-[9px] font-bold tracking-widest uppercase`} thickness={2}>
                 🛠️ SANDBOX
+              </PixelFrame>
+            </button>
+            <button
+              onClick={() => setShowOnboarding(true)}
+              className="pointer-events-auto active:translate-y-0.5 transition-all cursor-pointer"
+              aria-label="How it works"
+            >
+              <PixelFrame className="bg-[#0f1118]/80 text-[#b89c30] hover:text-[#ffd86b] px-2.5 py-1.5 text-[9px] font-bold tracking-widest uppercase" thickness={2}>
+                ❔ HELP
               </PixelFrame>
             </button>
           </div>
