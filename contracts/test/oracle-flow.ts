@@ -77,10 +77,9 @@ describe("Digital Oracle core flow", function () {
     await usdy.connect(alice).approve(await vault.getAddress(), stakeAmount);
     await vault.connect(alice).enter(stakeAmount);
 
-    await expect(vault.connect(alice).checkIn(1))
-      .to.emit(vault, "FaithCheckedIn")
-      .and.to.emit(vault, "KarmaGranted")
-      .withArgs(1, 5);
+    // checkIn awards karma inline and emits FaithCheckedIn (no separate
+    // KarmaGranted event in the gas-optimized vault); karma is asserted below.
+    await expect(vault.connect(alice).checkIn(1)).to.emit(vault, "FaithCheckedIn");
 
     let disciple = await vault.disciples(1);
     expect(disciple.karma).to.equal(5);
@@ -105,10 +104,8 @@ describe("Digital Oracle core flow", function () {
     await usdy.connect(alice).approve(await vault.getAddress(), stakeAmount);
     await vault.connect(alice).enter(stakeAmount);
 
-    await expect(vault.connect(alice).recordShare(1, "x"))
-      .to.emit(vault, "FaithShared")
-      .and.to.emit(vault, "KarmaGranted")
-      .withArgs(1, 3);
+    // recordShare awards karma inline and emits FaithShared; karma asserted below.
+    await expect(vault.connect(alice).recordShare(1, "x")).to.emit(vault, "FaithShared");
 
     let disciple = await vault.disciples(1);
     expect(disciple.karma).to.equal(3);
