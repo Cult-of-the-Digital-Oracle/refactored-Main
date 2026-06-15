@@ -1,10 +1,15 @@
+// Normalize every address: trim stray whitespace/newlines. A trailing "\n" on a
+// Vercel env var already broke EIP-712 signing once (the ProofOfWorship address);
+// trimming ALL six prevents that whole class of silent malformed-address failures.
+const addr = (v: string | undefined) => (v ?? "").trim() as `0x${string}`;
+
 export const CONTRACTS = {
-  oracleMessage: (process.env.NEXT_PUBLIC_ORACLE_MESSAGE_ADDRESS ?? "") as `0x${string}`,
-  templeVault: (process.env.NEXT_PUBLIC_TEMPLE_VAULT_ADDRESS ?? "") as `0x${string}`,
-  blessingDistributor: (process.env.NEXT_PUBLIC_BLESSING_DISTRIBUTOR_ADDRESS ?? "") as `0x${string}`,
-  usdy: (process.env.NEXT_PUBLIC_USDY_ADDRESS ?? "") as `0x${string}`,
-  civilizationLog: (process.env.NEXT_PUBLIC_CIVILIZATION_LOG_ADDRESS ?? "") as `0x${string}`,
-  proofOfWorship: (process.env.NEXT_PUBLIC_PROOF_OF_WORSHIP_ADDRESS ?? "").trim() as `0x${string}`,
+  oracleMessage: addr(process.env.NEXT_PUBLIC_ORACLE_MESSAGE_ADDRESS),
+  templeVault: addr(process.env.NEXT_PUBLIC_TEMPLE_VAULT_ADDRESS),
+  blessingDistributor: addr(process.env.NEXT_PUBLIC_BLESSING_DISTRIBUTOR_ADDRESS),
+  usdy: addr(process.env.NEXT_PUBLIC_USDY_ADDRESS),
+  civilizationLog: addr(process.env.NEXT_PUBLIC_CIVILIZATION_LOG_ADDRESS),
+  proofOfWorship: addr(process.env.NEXT_PUBLIC_PROOF_OF_WORSHIP_ADDRESS),
 } as const;
 
 export const PROOF_OF_WORSHIP_ABI = [
