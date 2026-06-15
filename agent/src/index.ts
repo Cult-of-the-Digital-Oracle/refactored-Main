@@ -10,8 +10,9 @@ import {
   postProphecy,
   resolveProphecy,
   queueBlessing,
-  getYesterdayProphecy,
+  getUnresolvedProphecies,
   getTodaysProphecy,
+  blessingExistsForDay,
 } from "./postToChain";
 
 import { CivilizationEngine } from "./civilization/civilizationEngine";
@@ -95,7 +96,10 @@ const demiurgeClient = new OpenAI({
   maxRetries: 5,
 });
 
-const threshold = parseInt(FULFILLMENT_THRESHOLD);
+// Guard against a non-numeric FULFILLMENT_THRESHOLD (e.g. empty/typo'd env) —
+// NaN would make `score >= threshold` always false and silently disable blessings.
+const parsedThreshold = parseInt(FULFILLMENT_THRESHOLD);
+const threshold = Number.isFinite(parsedThreshold) ? parsedThreshold : 70;
 
 // Blessing yield amount per round (0.5 USDY = 500_000 units @ 6 decimals).
 const YIELD_PER_ROUND = ethers.parseUnits("0.5", 6);
@@ -118,131 +122,134 @@ async function runOracleCycle() {
   await civEngine.initialize();
   await demiurge.loadState();
 
-  const currentDay = Math.floor(Date.now() / 86400000);
+  // chain-time day index — MUST match the contracts' block.timestamp / 1 days.
+  // The host clock (Date.now) can be ±1 day off at the UTC-midnight boundary,
+  // which is exactly when the cron fires — that desync misfiled the snapshot
+  // under a day the evaluator never looked up.
+  const latestBlock = await provider.getBlock("latest");
+  const currentDay = latestBlock
+    ? Math.floor(latestBlock.timestamp / 86400)
+    : Math.floor(Date.now() / 86400000);
 
   // ── 1. Execute scheduled Demiurge tools from yesterday ───────────────────
-  await demiurge.checkAndExecute(currentDay);
-
-  // ── 2. Tick civilization and post daily snapshot ─────────────────────────
-  await civEngine.tick(currentDay);
-  const worldState = civEngine.getWorldState();
-  const civSnapshot = buildSnapshot(worldState);
-  
-  console.log(`Posting daily civilization snapshot to CivilizationLog.sol (day ${currentDay})...`);
   try {
-    const snapHash = await postSnapshotToChain(civEngineSigner, CIV_LOG_ADDRESS!, currentDay, civSnapshot);
-    console.log(`Snapshot posted successfully: ${snapHash}`);
-  } catch (err: unknown) {
-    // One snapshot per UTC day is enforced on-chain (SnapshotAlreadyExists). In
-    // DEMO_MODE (30s cron) every cycle after the first of the day reverts here —
-    // that's expected. Don't abort the rest of the cycle (eval/prophecy/demiurge).
-    const msg = (err as { shortMessage?: string; message?: string })?.shortMessage
-      ?? (err as { message?: string })?.message ?? String(err);
-    console.warn(`Snapshot post skipped (continuing cycle): ${msg}`);
+    await demiurge.checkAndExecute(currentDay);
+  } catch (err) {
+    console.warn("Demiurge checkAndExecute skipped:", (err as Error)?.message ?? err);
   }
 
-  // B. Fetch on-chain metrics
-  const chainData = await fetchChainData(provider, USDY_ADDRESS!, TEMPLE_VAULT_ADDRESS!);
-  console.log("Chain data fetched:", chainData.blockNumber);
-  console.log(`Temple: ${chainData.temple.discipleCount} disciples, ${chainData.temple.totalFaithUsdy} USDY staked`);
-
-  // ── 3. Evaluate yesterday's prophecy ────────────────────────────────────
-  const yesterday = await getYesterdayProphecy(provider, ORACLE_MESSAGE_ADDRESS!);
-  if (yesterday && !yesterday.resolved) {
-    console.log(`Evaluating yesterday's prophecy for day ${yesterday.day}...`);
-    
-    // Fetch yesterday's and today's civilization snapshots from smart contract
-    let yesterdayCivSnapshot: CivSnapshotData | undefined;
-    let todayCivSnapshot: CivSnapshotData | undefined;
+  // ── 2. Tick civilization and post daily snapshot ─────────────────────────
+  let civSnapshot: ReturnType<typeof buildSnapshot> | undefined;
+  try {
+    await civEngine.tick(currentDay);
+    civSnapshot = buildSnapshot(civEngine.getWorldState());
+    console.log(`Posting daily civilization snapshot to CivilizationLog.sol (day ${currentDay})...`);
     try {
-      const civContract = new ethers.Contract(CIV_LOG_ADDRESS!, [
-        "function getSnapshot(uint256 day) external view returns (tuple(bytes32 stateHash, uint32 totalEntities, uint32 totalPopulation, uint64 totalFaith, uint8 dominantFaction, uint8 activeRegions, uint64 snapshotAt) snap)"
-      ], provider);
-      
-      const yesterdayDay = yesterday.day;
-      const yesterdaySnap = await civContract.getSnapshot(yesterdayDay);
-      if (yesterdaySnap.snapshotAt > 0n) {
-        yesterdayCivSnapshot = {
-          totalEntities: Number(yesterdaySnap.totalEntities),
-          totalPopulation: Number(yesterdaySnap.totalPopulation),
-          totalFaith: yesterdaySnap.totalFaith,
-          dominantFaction: yesterdaySnap.dominantFaction,
-          activeRegions: yesterdaySnap.activeRegions
-        };
-      }
-
-      const todaySnap = await civContract.getSnapshot(yesterdayDay + 1n);
-      if (todaySnap.snapshotAt > 0n) {
-        todayCivSnapshot = {
-          totalEntities: Number(todaySnap.totalEntities),
-          totalPopulation: Number(todaySnap.totalPopulation),
-          totalFaith: todaySnap.totalFaith,
-          dominantFaction: todaySnap.dominantFaction,
-          activeRegions: todaySnap.activeRegions
-        };
-      }
-    } catch (e) {
-      console.warn("Could not retrieve civilization snapshots from log for evaluation:", e);
+      const snapHash = await postSnapshotToChain(civEngineSigner, CIV_LOG_ADDRESS!, currentDay, civSnapshot);
+      console.log(`Snapshot posted successfully: ${snapHash}`);
+    } catch (err: unknown) {
+      // One snapshot per UTC day is enforced on-chain (SnapshotAlreadyExists). In
+      // DEMO_MODE (30s cron) every cycle after the first of the day reverts here —
+      // that's expected. Don't abort the rest of the cycle.
+      const msg = (err as { shortMessage?: string; message?: string })?.shortMessage
+        ?? (err as { message?: string })?.message ?? String(err);
+      console.warn(`Snapshot post skipped (continuing cycle): ${msg}`);
     }
+  } catch (err) {
+    console.warn("Civilization tick/snapshot skipped:", (err as Error)?.message ?? err);
+  }
 
-    const { score, reason, evidence } = await evaluateProphecy(
-      evaluatorClient,
-      yesterday.text,
-      chainData,
-      yesterdayCivSnapshot,
-      todayCivSnapshot,
-      undefined,
-      EVALUATOR_MODEL
-    );
-    console.log(`  Score: ${score}/100 - ${reason}`);
+  // B. Fetch on-chain metrics (eval + prophecy generation both need this)
+  let chainData: Awaited<ReturnType<typeof fetchChainData>> | undefined;
+  try {
+    chainData = await fetchChainData(provider, USDY_ADDRESS!, TEMPLE_VAULT_ADDRESS!);
+    console.log("Chain data fetched:", chainData.blockNumber);
+    console.log(`Temple: ${chainData.temple.discipleCount} disciples, ${chainData.temple.totalFaithUsdy} USDY staked`);
+  } catch (err) {
+    console.error("fetchChainData failed — skipping eval + prophecy this cycle:", (err as Error)?.message ?? err);
+  }
 
-    const hash = await resolveProphecy(
-      signer,
-      ORACLE_MESSAGE_ADDRESS!,
-      yesterday.day,
-      score,
-      reason,
-      evidence
-    );
-    console.log(`  Resolved on-chain: ${hash}`);
+  // ── 3. Resolve EVERY unresolved prophecy in the backlog (not just yesterday) ─
+  // A single missed cron run used to leave a prophecy unresolved forever; scan
+  // back a week and clear the whole backlog. Each day is isolated so one failure
+  // doesn't block the others.
+  if (chainData) {
+    let unresolved: { text: string; day: bigint; resolved: boolean }[] = [];
+    try {
+      unresolved = await getUnresolvedProphecies(provider, ORACLE_MESSAGE_ADDRESS!, 7);
+    } catch (err) {
+      console.error("Could not scan for unresolved prophecies:", (err as Error)?.message ?? err);
+    }
+    for (const prop of unresolved) {
+      try {
+        console.log(`Evaluating prophecy for day ${prop.day}...`);
+        let prevCiv: CivSnapshotData | undefined;
+        let nextCiv: CivSnapshotData | undefined;
+        try {
+          const civContract = new ethers.Contract(CIV_LOG_ADDRESS!, [
+            "function getSnapshot(uint256 day) external view returns (tuple(bytes32 stateHash, uint32 totalEntities, uint32 totalPopulation, uint64 totalFaith, uint8 dominantFaction, uint8 activeRegions, uint64 snapshotAt) snap)"
+          ], provider);
+          const s0 = await civContract.getSnapshot(prop.day);
+          if (s0.snapshotAt > 0n) prevCiv = { totalEntities: Number(s0.totalEntities), totalPopulation: Number(s0.totalPopulation), totalFaith: s0.totalFaith, dominantFaction: s0.dominantFaction, activeRegions: s0.activeRegions };
+          const s1 = await civContract.getSnapshot(prop.day + 1n);
+          if (s1.snapshotAt > 0n) nextCiv = { totalEntities: Number(s1.totalEntities), totalPopulation: Number(s1.totalPopulation), totalFaith: s1.totalFaith, dominantFaction: s1.dominantFaction, activeRegions: s1.activeRegions };
+        } catch (e) {
+          console.warn("Could not retrieve civ snapshots for evaluation:", (e as Error)?.message ?? e);
+        }
 
-    // Queue blessing if fulfilled above threshold
-    if (score >= threshold && BLESSING_DISTRIBUTOR_ADDRESS && USDY_ADDRESS) {
-      console.log(`  Score >= ${threshold} — queueing blessing...`);
-      const bHash = await queueBlessing(
-        signer,
-        USDY_ADDRESS!,
-        BLESSING_DISTRIBUTOR_ADDRESS!,
-        yesterday.day,
-        YIELD_PER_ROUND
-      );
-      console.log(`  Blessing queued: ${bHash}`);
+        const { score, reason, evidence } = await evaluateProphecy(
+          evaluatorClient, prop.text, chainData, prevCiv, nextCiv, undefined, EVALUATOR_MODEL
+        );
+        console.log(`  Score: ${score}/100 - ${reason}`);
+
+        const hash = await resolveProphecy(signer, ORACLE_MESSAGE_ADDRESS!, prop.day, score, reason, evidence);
+        console.log(`  Resolved on-chain: ${hash}`);
+
+        // Queue blessing if fulfilled — idempotent: never double-pay a day's yield.
+        if (score >= threshold && BLESSING_DISTRIBUTOR_ADDRESS && USDY_ADDRESS) {
+          if (await blessingExistsForDay(provider, BLESSING_DISTRIBUTOR_ADDRESS!, prop.day)) {
+            console.log(`  Blessing already queued for day ${prop.day} — skipping.`);
+          } else {
+            console.log(`  Score >= ${threshold} — queueing blessing...`);
+            const bHash = await queueBlessing(signer, USDY_ADDRESS!, BLESSING_DISTRIBUTOR_ADDRESS!, prop.day, YIELD_PER_ROUND);
+            console.log(`  Blessing queued: ${bHash}`);
+          }
+        }
+      } catch (err) {
+        console.error(`  Resolving day ${prop.day} failed (continuing):`, (err as Error)?.message ?? err);
+      }
     }
   }
 
   // ── 4. Post today's prophecy if absent ───────────────────────────────────
-  const todaysProphecy = await getTodaysProphecy(provider, ORACLE_MESSAGE_ADDRESS!);
   let activeProphecyText = "";
-
-  if (todaysProphecy) {
-    console.log("Today's prophecy already exists on-chain. Skipping post.");
-    activeProphecyText = todaysProphecy.text;
-  } else {
-    console.log("Generating today's prophecy...");
-    const currentCivSnap = {
-      totalEntities: civSnapshot.totalEntities,
-      totalPopulation: civSnapshot.totalPopulation,
-      totalFaith: civSnapshot.totalFaith,
-      dominantFaction: civSnapshot.dominantFaction,
-      activeRegions: civSnapshot.activeRegions
-    };
-    
-    const prophecyText = await generateProphecy(oracleClient, chainData, currentCivSnap, ORACLE_MODEL);
-    console.log(`  Prophecy: "${prophecyText}"`);
-
-    const { day, txHash } = await postProphecy(signer, ORACLE_MESSAGE_ADDRESS!, prophecyText);
-    console.log(`  Posted on-chain (day ${day}): ${txHash}`);
-    activeProphecyText = prophecyText;
+  if (chainData) {
+    try {
+      const todaysProphecy = await getTodaysProphecy(provider, ORACLE_MESSAGE_ADDRESS!);
+      if (todaysProphecy) {
+        console.log("Today's prophecy already exists on-chain. Skipping post.");
+        activeProphecyText = todaysProphecy.text;
+      } else {
+        console.log("Generating today's prophecy...");
+        const currentCivSnap = civSnapshot
+          ? {
+              totalEntities: civSnapshot.totalEntities,
+              totalPopulation: civSnapshot.totalPopulation,
+              totalFaith: civSnapshot.totalFaith,
+              dominantFaction: civSnapshot.dominantFaction,
+              activeRegions: civSnapshot.activeRegions,
+            }
+          : undefined;
+        // Cap length so a verbose model can't inflate calldata/gas on-chain.
+        const prophecyText = (await generateProphecy(oracleClient, chainData, currentCivSnap, ORACLE_MODEL)).slice(0, 280);
+        console.log(`  Prophecy: "${prophecyText}"`);
+        const { day, txHash } = await postProphecy(signer, ORACLE_MESSAGE_ADDRESS!, prophecyText);
+        console.log(`  Posted on-chain (day ${day}): ${txHash}`);
+        activeProphecyText = prophecyText;
+      }
+    } catch (err) {
+      console.error("Posting today's prophecy failed:", (err as Error)?.message ?? err);
+    }
   }
 
   // ── 5. Demiurge decide on today's prophecy and post preview on-chain ─────
