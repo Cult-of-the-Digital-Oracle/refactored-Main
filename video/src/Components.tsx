@@ -2,6 +2,7 @@ import React from "react";
 import {
   AbsoluteFill,
   Video,
+  Img,
   staticFile,
   interpolate,
   spring,
@@ -49,9 +50,16 @@ export const Intro: React.FC = () => {
         opacity: fadeOut,
       }}
     >
-      <div style={{ fontSize: 140, transform: `scale(${0.6 + eye * 0.4})`, filter: "drop-shadow(0 0 40px rgba(0,255,255,0.5))" }}>
-        👁️
-      </div>
+      <Img
+        src={staticFile("oracle-eye-logo.png")}
+        style={{
+          width: 260,
+          height: 260,
+          objectFit: "contain",
+          transform: `scale(${0.6 + eye * 0.4})`,
+          filter: "drop-shadow(0 0 40px rgba(0,255,255,0.5))",
+        }}
+      />
       <h1
         style={{
           fontFamily: FONT,
@@ -86,9 +94,9 @@ export const Intro: React.FC = () => {
 };
 
 // ── SCENE — gameplay clip + scene label + lower-third caption ────────────────
-export const Scene: React.FC<SceneDef & { index: number }> = ({ title, caption, clip, index }) => {
+export const Scene: React.FC<SceneDef & { index: number }> = ({ title, caption, clip, startSec, index }) => {
   const frame = useCurrentFrame();
-  const { durationInFrames } = useVideoConfig();
+  const { durationInFrames, fps } = useVideoConfig();
   const inT = interpolate(frame, [0, 12], [0, 1], { extrapolateRight: "clamp" });
   const outT = interpolate(frame, [durationInFrames - 12, durationInFrames], [1, 0], { extrapolateLeft: "clamp" });
   const opacity = Math.min(inT, outT);
@@ -97,7 +105,12 @@ export const Scene: React.FC<SceneDef & { index: number }> = ({ title, caption, 
   return (
     <AbsoluteFill style={{ backgroundColor: VOID, opacity }}>
       {clip ? (
-        <Video src={staticFile(`clips/${clip}`)} muted style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        <Video
+          src={staticFile(`clips/${clip}`)}
+          muted
+          startFrom={Math.round((startSec ?? 0) * fps)}
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
       ) : (
         // placeholder so you can preview timing/captions before recording
         <AbsoluteFill
