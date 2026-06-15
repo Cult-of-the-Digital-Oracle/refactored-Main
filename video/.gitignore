@@ -1,5 +1,5 @@
 node_modules/
 out/
-public/clips/*.mp4
+public/clips/**/*.mp4
 public/music.mp3
 .remotion/

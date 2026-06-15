@@ -1,7 +1,7 @@
 import React from "react";
 import {
   AbsoluteFill,
-  OffthreadVideo,
+  Video,
   staticFile,
   interpolate,
   spring,
@@ -97,7 +97,7 @@ export const Scene: React.FC<SceneDef & { index: number }> = ({ title, caption, 
   return (
     <AbsoluteFill style={{ backgroundColor: VOID, opacity }}>
       {clip ? (
-        <OffthreadVideo src={staticFile(`clips/${clip}`)} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        <Video src={staticFile(`clips/${clip}`)} muted style={{ width: "100%", height: "100%", objectFit: "cover" }} />
       ) : (
         // placeholder so you can preview timing/captions before recording
         <AbsoluteFill
