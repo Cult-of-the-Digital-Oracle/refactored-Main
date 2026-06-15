@@ -25,17 +25,15 @@ const config: HardhatUserConfig = {
       accounts,
     },
   },
+  // Etherscan V2 unified API (single key, V2 endpoint per chainid).
   etherscan: {
-    apiKey: {
-      mantleSepolia: process.env.MANTLESCAN_API_KEY ?? "",
-      mantle: process.env.MANTLESCAN_API_KEY ?? "",
-    },
+    apiKey: process.env.MANTLESCAN_API_KEY ?? "",
     customChains: [
       {
         network: "mantleSepolia",
         chainId: 5003,
         urls: {
-          apiURL: "https://api-sepolia.mantlescan.xyz/api",
+          apiURL: "https://api.etherscan.io/v2/api?chainid=5003",
           browserURL: "https://sepolia.mantlescan.xyz",
         },
       },
@@ -43,7 +41,7 @@ const config: HardhatUserConfig = {
         network: "mantle",
         chainId: 5000,
         urls: {
-          apiURL: "https://api.mantlescan.xyz/api",
+          apiURL: "https://api.etherscan.io/v2/api?chainid=5000",
           browserURL: "https://mantlescan.xyz",
         },
       },
