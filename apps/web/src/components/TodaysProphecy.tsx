@@ -2,15 +2,19 @@
 
 import Image from "next/image";
 import { useReadContract } from "wagmi";
+import { mantleSepoliaTestnet } from "wagmi/chains";
 import { CONTRACTS, ORACLE_MESSAGE_ABI } from "@/lib/contracts";
 import PixelFrame from "@/components/PixelFrame";
 import { ORACLE_ASSETS } from "@/lib/oracleAssets";
+
+const CHAIN_ID = mantleSepoliaTestnet.id;
 
 export function TodaysProphecy() {
   const { data, isLoading } = useReadContract({
     address: CONTRACTS.oracleMessage,
     abi: ORACLE_MESSAGE_ABI,
     functionName: "todaysProphecy",
+    chainId: CHAIN_ID,
   });
 
   const prophecy = data as
@@ -28,6 +32,7 @@ export function TodaysProphecy() {
     address: CONTRACTS.oracleMessage,
     abi: ORACLE_MESSAGE_ABI,
     functionName: "totalProphecies",
+    chainId: CHAIN_ID,
   });
 
   const hasText = !!prophecy?.text;

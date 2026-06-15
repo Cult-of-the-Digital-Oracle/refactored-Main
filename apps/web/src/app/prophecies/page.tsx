@@ -5,12 +5,15 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { ConnectButton } from "@/components/ConnectButton";
 import { useReadContract, useReadContracts } from "wagmi";
+import { mantleSepoliaTestnet } from "wagmi/chains";
 import { formatUnits } from "viem";
 import { CONTRACTS, ORACLE_MESSAGE_ABI, TEMPLE_VAULT_ABI } from "@/lib/contracts";
 import { AmbientRunes } from "@/components/AmbientRunes";
 import { PanelCorners } from "@/components/PanelCorners";
 import PixelFrame from "@/components/PixelFrame";
 import { ORACLE_ASSETS } from "@/lib/oracleAssets";
+
+const CHAIN_ID = mantleSepoliaTestnet.id;
 
 type Prophecy = {
   text: string;
@@ -77,12 +80,14 @@ export default function PropheciesPage() {
     address: CONTRACTS.oracleMessage,
     abi: ORACLE_MESSAGE_ABI,
     functionName: "totalProphecies",
+    chainId: CHAIN_ID,
   });
 
   const { data: totalFaith } = useReadContract({
     address: CONTRACTS.templeVault,
     abi: TEMPLE_VAULT_ABI,
     functionName: "totalFaith",
+    chainId: CHAIN_ID,
   });
 
   const todayDay = useMemo(() => BigInt(Math.floor(Date.now() / 86400000)), []);
@@ -95,6 +100,7 @@ export default function PropheciesPage() {
         address: CONTRACTS.oracleMessage,
         abi: ORACLE_MESSAGE_ABI,
         functionName: "getProphecy" as const,
+        chainId: CHAIN_ID,
         args: [todayDay - BigInt(i)] as const,
       })),
     [todayDay, dayCount]

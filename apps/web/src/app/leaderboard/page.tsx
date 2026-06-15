@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ConnectButton } from "@/components/ConnectButton";
 import { useMemo } from "react";
 import { useReadContract, useReadContracts } from "wagmi";
+import { mantleSepoliaTestnet } from "wagmi/chains";
 import { formatUnits } from "viem";
 import { AmbientRunes } from "@/components/AmbientRunes";
 import { PanelCorners } from "@/components/PanelCorners";
@@ -12,6 +13,8 @@ import PixelFrame from "@/components/PixelFrame";
 import { CONTRACTS, TEMPLE_VAULT_ABI } from "@/lib/contracts";
 import { ORACLE_ASSETS } from "@/lib/oracleAssets";
 import { generateDiscipleName } from "@/lib/discipleName";
+
+const CHAIN_ID = mantleSepoliaTestnet.id;
 
 // v3 struct: [address, uint88 stakeAmount, bool active, uint128 karma, uint64 joinedAt, uint64 exitedAt]
 type DiscipleTuple = readonly [`0x${string}`, bigint, boolean, bigint, bigint, bigint];
@@ -58,12 +61,14 @@ export default function LeaderboardPage() {
     address: CONTRACTS.templeVault,
     abi: TEMPLE_VAULT_ABI,
     functionName: "nextId",
+    chainId: CHAIN_ID,
   });
 
   const { data: totalFaith } = useReadContract({
     address: CONTRACTS.templeVault,
     abi: TEMPLE_VAULT_ABI,
     functionName: "totalFaith",
+    chainId: CHAIN_ID,
   });
 
   const tokenIds = useMemo(() => {
@@ -76,6 +81,7 @@ export default function LeaderboardPage() {
       address: CONTRACTS.templeVault,
       abi: TEMPLE_VAULT_ABI,
       functionName: "disciples" as const,
+      chainId: CHAIN_ID,
       args: [tokenId] as const,
     })),
     query: { enabled: tokenIds.length > 0 },

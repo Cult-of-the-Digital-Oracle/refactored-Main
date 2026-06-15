@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import * as Comlink from 'comlink';
 import { usePublicClient, useReadContract, useAccount } from 'wagmi';
+import { mantleSepoliaTestnet } from "wagmi/chains";
 
 import { SimWorldState, SimEntity, SimRegion, SimDivineEvent } from '../../lib/simulation/types';
 import { SimulationWorkerAPI } from '../../lib/simulation/worker';
@@ -25,6 +26,8 @@ const WorldCanvas = dynamic(
   () => import('../../components/OracleWorld/WorldCanvas'),
   { ssr: false }
 );
+
+const CHAIN_ID = mantleSepoliaTestnet.id;
 
 // Standard Chiptune Synthesizer Audio Generator using Web Audio API
 function playChiptuneSFX(isGood: boolean) {
@@ -104,7 +107,7 @@ export default function OracleWorldPage() {
   const workerRef = useRef<Worker | null>(null);
 
   // On-Chain Synchronization States
-  const publicClient = usePublicClient();
+  const publicClient = usePublicClient({ chainId: CHAIN_ID });
   const { address } = useAccount();
 
   // Proof of Worship — the player's own hero reacts in the world to the AI's verdict.
@@ -136,6 +139,7 @@ export default function OracleWorldPage() {
     address: CONTRACTS.oracleMessage,
     abi: ORACLE_MESSAGE_ABI,
     functionName: 'todaysProphecy',
+    chainId: CHAIN_ID,
     query: { enabled: !!CONTRACTS.oracleMessage },
   });
   const todaysProphecyText = (onChainProphecy as { text?: string } | undefined)?.text ?? '';
