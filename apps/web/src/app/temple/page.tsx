@@ -3,16 +3,22 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ConnectKitButton } from "connectkit";
 import { ConnectButton } from "@/components/ConnectButton";
 import {
   useAccount,
   useReadContract,
   useReadContracts,
+  useSwitchChain,
   useWaitForTransactionReceipt,
   useWriteContract,
 } from "wagmi";
+import { mantleSepoliaTestnet } from "wagmi/chains";
 import { formatUnits, parseUnits } from "viem";
+
+// All reads/writes are pinned to this chain so the Temple works regardless of
+// which network the wallet currently has selected (a wallet defaulting to
+// Ethereum mainnet was reading cardOf on the wrong chain → always StakeForm).
+const CHAIN_ID = mantleSepoliaTestnet.id;
 import {
   BLESSING_DISTRIBUTOR_ABI,
   CONTRACTS,
@@ -62,17 +68,24 @@ function fmtDate(ts: bigint | undefined): string {
 }
 
 export default function TemplePage() {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chainId } = useAccount();
+  const { switchChain, isPending: isSwitching } = useSwitchChain();
+  const wrongNetwork = isConnected && chainId !== CHAIN_ID;
   const [amountStr, setAmountStr] = useState("10");
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [lastAction, setLastAction] = useState<"faucet"|"approve"|"enter"|"exit"|"checkIn"|"share"|null>(null);
+
+  // poll critical reads so the UI self-heals against RPC read-lag (a stake can
+  // confirm a beat before the node serving cardOf reflects the new state).
+  const pollMs = isConnected && !wrongNetwork ? 4000 : (false as const);
 
   const { data: tokenId, refetch: refetchCard } = useReadContract({
     address: CONTRACTS.templeVault,
     abi: TEMPLE_VAULT_ABI,
     functionName: "cardOf",
     args: [address!],
-    query: { enabled: !!address },
+    chainId: CHAIN_ID,
+    query: { enabled: !!address, refetchInterval: pollMs },
   });
 
   const isDisciple = !!tokenId && tokenId > 0n;
@@ -82,13 +95,15 @@ export default function TemplePage() {
     abi: TEMPLE_VAULT_ABI,
     functionName: "disciples",
     args: [tokenId!],
-    query: { enabled: isDisciple },
+    chainId: CHAIN_ID,
+    query: { enabled: isDisciple, refetchInterval: isDisciple ? pollMs : (false as const) },
   });
 
   const { data: totalFaith, refetch: refetchTotalFaith } = useReadContract({
     address: CONTRACTS.templeVault,
     abi: TEMPLE_VAULT_ABI,
     functionName: "totalFaith",
+    chainId: CHAIN_ID,
   });
 
   const { data: lastCheckInDay, refetch: refetchLastCheckInDay } = useReadContract({
@@ -96,6 +111,7 @@ export default function TemplePage() {
     abi: TEMPLE_VAULT_ABI,
     functionName: "lastCheckInDay",
     args: [address!],
+    chainId: CHAIN_ID,
     query: { enabled: !!address },
   });
 
@@ -104,6 +120,7 @@ export default function TemplePage() {
     abi: TEMPLE_VAULT_ABI,
     functionName: "lastShareDay",
     args: [address!],
+    chainId: CHAIN_ID,
     query: { enabled: !!address },
   });
 
@@ -112,7 +129,8 @@ export default function TemplePage() {
     abi: ERC20_ABI,
     functionName: "balanceOf",
     args: [address!],
-    query: { enabled: !!address },
+    chainId: CHAIN_ID,
+    query: { enabled: !!address, refetchInterval: pollMs },
   });
 
   const { data: allowance, refetch: refetchAllowance } = useReadContract({
@@ -120,7 +138,8 @@ export default function TemplePage() {
     abi: ERC20_ABI,
     functionName: "allowance",
     args: [address!, CONTRACTS.templeVault],
-    query: { enabled: !!address },
+    chainId: CHAIN_ID,
+    query: { enabled: !!address, refetchInterval: pollMs },
   });
 
   // Struct order: [address, uint88 stakeAmount, bool active, uint128 karma, uint64 joinedAt, uint64 exitedAt]
@@ -182,7 +201,7 @@ export default function TemplePage() {
 
   function handleFaucet() {
     setLastAction("faucet");
-    writeContract({ address: CONTRACTS.usdy, abi: FAUCET_ABI, functionName: "faucet" });
+    writeContract({ address: CONTRACTS.usdy, abi: FAUCET_ABI, functionName: "faucet", chainId: CHAIN_ID });
   }
 
   function handleApprove() {
@@ -192,6 +211,7 @@ export default function TemplePage() {
       abi: ERC20_ABI,
       functionName: "approve",
       args: [CONTRACTS.templeVault, amountBN],
+      chainId: CHAIN_ID,
     });
   }
 
@@ -202,6 +222,7 @@ export default function TemplePage() {
       abi: TEMPLE_VAULT_ABI,
       functionName: "enter",
       args: [amountBN],
+      chainId: CHAIN_ID,
     });
   }
 
@@ -213,6 +234,7 @@ export default function TemplePage() {
       abi: TEMPLE_VAULT_ABI,
       functionName: "exit",
       args: [tokenId],
+      chainId: CHAIN_ID,
     });
   }
 
@@ -224,6 +246,7 @@ export default function TemplePage() {
       abi: TEMPLE_VAULT_ABI,
       functionName: "checkIn",
       args: [tokenId],
+      chainId: CHAIN_ID,
     });
   }
 
@@ -235,6 +258,7 @@ export default function TemplePage() {
       abi: TEMPLE_VAULT_ABI,
       functionName: "recordShare",
       args: [tokenId, "x"],
+      chainId: CHAIN_ID,
     });
   }
 
@@ -332,20 +356,29 @@ export default function TemplePage() {
                   The Temple only recognizes believers who step forward with a wallet.
                 </p>
                 <div className="mt-5 flex justify-center">
-                  <ConnectKitButton />
+                  <ConnectButton />
                 </div>
               </PixelFrame>
-            ) : isDisciple && disciple ? (
-              <DiscipleCard
-                tokenId={tokenId!}
-                disciple={disciple}
-                lastCheckInDay={lastCheckInDay}
-                lastShareDay={lastShareDay}
-                isBusy={isBusy}
-                onCheckIn={handleCheckIn}
-                onRecordShare={handleRecordShare}
-                onExit={handleExit}
+            ) : wrongNetwork ? (
+              <SwitchNetworkPanel
+                isBusy={isSwitching}
+                onSwitch={() => switchChain({ chainId: CHAIN_ID })}
               />
+            ) : isDisciple ? (
+              disciple ? (
+                <DiscipleCard
+                  tokenId={tokenId!}
+                  disciple={disciple}
+                  lastCheckInDay={lastCheckInDay}
+                  lastShareDay={lastShareDay}
+                  isBusy={isBusy}
+                  onCheckIn={handleCheckIn}
+                  onRecordShare={handleRecordShare}
+                  onExit={handleExit}
+                />
+              ) : (
+                <BindingLoader />
+              )
             ) : (
               <StakeForm
                 usdyBalance={usdyBalance}
@@ -395,6 +428,45 @@ export default function TemplePage() {
         </div>
       </section>
     </main>
+  );
+}
+
+function SwitchNetworkPanel({ isBusy, onSwitch }: { isBusy: boolean; onSwitch: () => void }) {
+  return (
+    <PixelFrame className="pixel-panel-danger overflow-hidden px-5 py-7 text-center sm:px-6 sm:py-8" round={2}>
+      <PanelCorners />
+      <p className="text-4xl uppercase text-[var(--pixel-parchment)]">Wrong Network</p>
+      <p className="mt-3 text-2xl text-[#ffd1c9]">
+        The Temple lives on Mantle Sepolia. Switch your wallet to enter.
+      </p>
+      <div className="mt-5 flex justify-center">
+        <OracleButton onClick={onSwitch} disabled={isBusy} variant="danger" className="px-6">
+          {isBusy ? "Switching..." : "Switch To Mantle Sepolia"}
+        </OracleButton>
+      </div>
+    </PixelFrame>
+  );
+}
+
+function BindingLoader() {
+  return (
+    <PixelFrame className="pixel-panel-emerald overflow-hidden px-5 py-8 text-center sm:px-6" round={2}>
+      <PanelCorners />
+      <div className="flex justify-center">
+        <OracleSprite
+          src={ORACLE_ASSETS.effects.transactionPendingSpinner}
+          width={36}
+          height={36}
+          className="oracle-spinner"
+        />
+      </div>
+      <p className="mt-4 text-3xl uppercase text-[var(--pixel-parchment)]">
+        Binding Your Soul To The Chain
+      </p>
+      <p className="mt-2 text-2xl text-[rgba(240,217,160,0.82)]">
+        Your Disciple is being inscribed. This takes a few seconds on Mantle…
+      </p>
+    </PixelFrame>
   );
 }
 
@@ -700,6 +772,7 @@ function ClaimPanel({ tokenId }: { tokenId: bigint }) {
     address: CONTRACTS.blessingDistributor,
     abi: BLESSING_DISTRIBUTOR_ABI,
     functionName: "nextRoundId",
+    chainId: CHAIN_ID,
   });
 
   const roundsToCheck = nextRoundId ? Number(nextRoundId) - 1 : 0;
@@ -710,6 +783,7 @@ function ClaimPanel({ tokenId }: { tokenId: bigint }) {
       abi: BLESSING_DISTRIBUTOR_ABI,
       functionName: "pendingBlessing" as const,
       args: [BigInt(i + 1), tokenId] as const,
+      chainId: CHAIN_ID,
     })),
     query: { enabled: roundsToCheck > 0 },
   });
@@ -790,6 +864,7 @@ function ClaimPanel({ tokenId }: { tokenId: bigint }) {
               abi: BLESSING_DISTRIBUTOR_ABI,
               functionName: "claim",
               args: [claimableRound.roundId, tokenId],
+              chainId: CHAIN_ID,
             })
           }
           disabled={isBusy}

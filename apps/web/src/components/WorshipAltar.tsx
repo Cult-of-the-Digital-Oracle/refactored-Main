@@ -2,8 +2,11 @@
 
 import { useState } from "react";
 import { useAccount, useWriteContract, useReadContract } from "wagmi";
+import { mantleSepoliaTestnet } from "wagmi/chains";
 import { formatUnits } from "viem";
 import { CONTRACTS, PROOF_OF_WORSHIP_ABI } from "@/lib/contracts";
+
+const CHAIN_ID = mantleSepoliaTestnet.id;
 
 type Phase = "idle" | "judging" | "rejected" | "signing" | "done";
 
@@ -26,6 +29,7 @@ export default function WorshipAltar({
     address: CONTRACTS.proofOfWorship,
     abi: PROOF_OF_WORSHIP_ABI,
     functionName: "rewardPerWorship",
+    chainId: CHAIN_ID,
     query: { enabled: !!CONTRACTS.proofOfWorship },
   });
   const reward = (rewardData as bigint | undefined) ?? null;
@@ -68,6 +72,7 @@ export default function WorshipAltar({
         abi: PROOF_OF_WORSHIP_ABI,
         functionName: "worship",
         args: [BigInt(res.day), res.score, res.signature as `0x${string}`],
+        chainId: CHAIN_ID,
       });
       onAccepted?.();
       setPhase("done");
